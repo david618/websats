@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Websats</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+        <h1>Websats</h1>
+        <p>Websats returns satellite locations. It was created to produce test data and is not intended for production use.</p>
+        <p>Fields in CSV order </p>
+        <ul>
+            <li>name: Satellite Name</li>
+            <li>num: Satellite Number</li>
+            <li>timestamp: Number of seconds from Epoch</li>
+            <li>dtg: Date and time of the location.  DD-MMM-YYYY hh:mm:ss</li>                       
+            <li>lon: Longitude of Satellite</li>
+            <li>lat: Latitude of Satellite</li>
+            <li>alt: Altitude of Satellite</li>
+        </ul>
+        <p>Sample CSV  Return</p>
+        <pre>
+GPS BIIR-3  (PRN 11)|25933|1489089593|9-MAR-2017 19:59:53.23|-104.05369917979482|-50.937680534864526|20633.125436692793
+GPS BIIR-6  (PRN 14)|26605|1489089593|9-MAR-2017 19:59:53.23|-42.31664681901353|-22.226731929334182|20012.310607299914   
+        </pre>
+        <p>Sample JSON Return</p>
+        <pre>
+[
+  {
+    "dtg": "9-MAR-2017 20:00:07.13",
+    "num": "29709",
+    "name": "LAPAN-TUBSAT",
+    "alt": 636.3293883119168,
+    "lon": 133.2289958056342,
+    "lat": 59.999716050804984,
+    "timestamp": 1489089607
+  },
+  {
+    "dtg": "9-MAR-2017 20:00:07.13",
+    "num": "41895",
+    "name": "STARS-C",
+    "alt": 412.56313548349044,
+    "lon": -137.24035371570022,
+    "lat": 25.510889677006322,
+    "timestamp": 1489089607
+  }
+]         
+        </pre>
+        
+        <p>Rest API </p>
+        <ul>
+            <li>Get all satellites (default csv): <a href="satellites">/satellites</a></li>
+            <li>Get all satellites as json: <a href="satellites?f=json">/satellites?f=json</a></li>
+            <li>Get all satellites as pretty json: <a href="satellites?f=pjson">/satellites?f=pjson</a></li>
+            <li>Get specific satellites by name (csv): <a href="satellites?names=GPS BIIR-3  (PRN 11),GPS BIIR-6  (PRN 14)">/satellites?names=GPS BIIR-3  (PRN 11),GPS BIIR-6  (PRN 14)</a></li>
+            <li>Get specific satellites by number (pjson): <a href="satellites?f=pjson&nums=29709,41895">/satellites?f=pjson&nums=29709,41895</a></li>
+            
+        </ul>
+    </body>
+</html>
