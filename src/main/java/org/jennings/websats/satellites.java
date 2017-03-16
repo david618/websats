@@ -1,7 +1,7 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+* To run in Jetty 
+* Add to webapps Folder of Jetty
+* java -jar start.jar -Djetty.port=9999
  */
 package org.jennings.websats;
 
@@ -95,6 +95,7 @@ public class satellites extends HttpServlet {
         String strFormat = "text";
         String strNums = "*";
         String strNames = "*";
+        String strTime = "";
         boolean isNums = false;
 
         // Populate the parameters ignoring case
@@ -103,6 +104,8 @@ public class satellites extends HttpServlet {
             String paramName = (String) paramNames.nextElement();
             if (paramName.equalsIgnoreCase("f")) {
                 strFormat = request.getParameter(paramName);
+            } else if (paramName.equalsIgnoreCase("t")) {
+                strTime = request.getParameter(paramName);
             } else if (paramName.equalsIgnoreCase("names")) {
                 strNames = request.getParameter(paramName);
             } else if (paramName.equalsIgnoreCase("nums")) {
@@ -115,6 +118,16 @@ public class satellites extends HttpServlet {
 
             String[] satArray = null;
 
+            long t = System.currentTimeMillis();  // Default to current system time
+            if (!strTime.equalsIgnoreCase("")) {
+                t = Long.parseLong(strTime);
+                if (t < 10000000000L) {
+                    // Assume it seconds convert to ms
+                    t = t * 1000;
+                }
+            }            
+            
+            
             // Nums trumps names
             if (isNums) {
                 if (strNums.equalsIgnoreCase("*")) {
@@ -137,7 +150,7 @@ public class satellites extends HttpServlet {
 
                 response.setContentType("application/json;charset=UTF-8");
                 try (PrintWriter out = response.getWriter()) {
-                    long t = System.currentTimeMillis();
+                    
 
                     for (String sat : satArray) {
                         //System.out.println(sat);
@@ -207,11 +220,93 @@ public class satellites extends HttpServlet {
                     }
 
                 }
+            } else if (strFormat.equalsIgnoreCase("geojson")) {
+                // Standard GeoJSON Outuput
+
+                JSONObject featureCollection = new JSONObject();
+                featureCollection.put("type", "FeatureCollection");
+
+                JSONArray features = new JSONArray();
+
+                response.setContentType("application/json;charset=UTF-8");
+                try (PrintWriter out = response.getWriter()) {
+                    
+
+                    for (String sat : satArray) {
+                        //System.out.println(sat);
+                        Sat pos = null;
+                        String message = "";
+                        if (isNums) {
+                            Sat s = satNums.get(sat);
+                            if (s == null) {
+                                // No satellite with that num
+                                message = "No sattelite with num: " + sat;
+                            } else {
+                                try {
+                                    pos = s.getPos(t);
+                                } catch (Exception e) {
+                                    // Some will be missed if time is in the past
+                                }
+                            }
+
+                        } else {
+                            Sat s = satNames.get(sat);
+                            if (s == null) {
+                                // No satellite with that Name
+                                message = "No sattelite with name: " + sat;
+                            } else {
+                                try {
+                                    pos = s.getPos(t);
+                                } catch (Exception e) {
+                                    // Some will be missed if time is in the past
+                                }
+
+                            }
+
+                        }
+
+                        JSONObject feature = new JSONObject();
+                        feature.put("type", "Feature");
+                        
+                        JSONObject properties = new JSONObject();
+                        
+                        if (pos == null) {
+                            // Not sure how to handle errors yet for gjson
+                        } else {
+                            properties.put("name", pos.getName());
+                            properties.put("num", pos.getNum());
+                            properties.put("timestamp", pos.GetEpoch().epochTimeSecs());
+                            properties.put("dtg", pos.GetEpoch());
+                            properties.put("lon", pos.GetLon());
+                            properties.put("lat", pos.GetParametricLat());
+                            properties.put("alt", pos.getAltitude());
+                            feature.put("properties", properties);
+                            
+                            JSONObject geom = new JSONObject();
+                            geom.put("type", "Point");
+                            JSONArray coord = new JSONArray("[" + pos.GetLon() + ", " + pos.GetParametricLat()+ "]");
+                            geom.put("coordinates",coord);                            
+                            feature.put("geometry", geom);
+                            
+                            features.put(feature);
+                            
+                        }
+
+                        
+
+                    }
+                
+                    featureCollection.put("features",features);                           
+
+                    out.println(featureCollection);
+                    
+                }
+
             } else {
                 // Return Text
                 response.setContentType("text/plain;charset=UTF-8");
                 try (PrintWriter out = response.getWriter()) {
-                    long t = System.currentTimeMillis();
+                    
 
                     for (String sat : satArray) {
                         //System.out.println(sat);                        
@@ -240,7 +335,6 @@ public class satellites extends HttpServlet {
                         }
 
                         out.println(strLine);
-                       
 
                     }
 
