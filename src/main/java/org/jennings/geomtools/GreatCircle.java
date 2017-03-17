@@ -260,61 +260,61 @@ public class GreatCircle {
         return m * (x - x1) + y1;
     }
 
-    /**
-     * Generates coordinates for a circle around a Geographic Center
-     *
-     * @param center
-     * @param radiusKM
-     * @param numPoints
-     * @return
-     */
-    public GeographicCoordinate[] createCircle(GeographicCoordinate center, Double radiusKM, Integer numPoints, boolean isClockwise) {
-
-        GeographicCoordinate[] coords = new GeographicCoordinate[numPoints];
-
-        try {
-            if (numPoints == null) {
-                // if null default to 20 points
-                numPoints = 20;
-            }
-
-            if (radiusKM == null) {
-                // default to 50 meters or 0.050 km
-                radiusKM = 0.050;
-            }
-
-            double d = 360.0 / (numPoints - 1);
-            int i = 0;
-            GeographicCoordinate nc1 = new GeographicCoordinate();
-            while (i < numPoints - 1) {
-                double theta = 0.0;
-                if (isClockwise) {
-                    theta = i * d - 180.0;
-                } else {
-                    theta = 180.0 - i * d;
-                }
-
-                DistanceBearing distb = new DistanceBearing(radiusKM, theta);
-
-                GeographicCoordinate nc = getNewCoordPair(center, distb);
-
-                coords[i] = nc;
-
-                i++;
-                if (i == 1) {
-                    nc1 = nc;
-                }
-            }
-
-            // last point same as first
-            coords[i] = nc1;
-
-        } catch (Exception e) {
-            coords = null;
-        }
-
-        return coords;
-    }
+//    /**
+//     * Generates coordinates for a circle around a Geographic Center
+//     *
+//     * @param center
+//     * @param radiusKM
+//     * @param numPoints
+//     * @return
+//     */
+//    public GeographicCoordinate[] createCircle(GeographicCoordinate center, Double radiusKM, Integer numPoints, boolean isClockwise) {
+//
+//        GeographicCoordinate[] coords = new GeographicCoordinate[numPoints];
+//
+//        try {
+//            if (numPoints == null) {
+//                // if null default to 20 points
+//                numPoints = 20;
+//            }
+//
+//            if (radiusKM == null) {
+//                // default to 50 meters or 0.050 km
+//                radiusKM = 0.050;
+//            }
+//
+//            double d = 360.0 / (numPoints - 1);
+//            int i = 0;
+//            GeographicCoordinate nc1 = new GeographicCoordinate();
+//            while (i < numPoints - 1) {
+//                double theta = 0.0;
+//                if (isClockwise) {
+//                    theta = i * d - 180.0;
+//                } else {
+//                    theta = 180.0 - i * d;
+//                }
+//
+//                DistanceBearing distb = new DistanceBearing(radiusKM, theta);
+//
+//                GeographicCoordinate nc = getNewCoordPair(center, distb);
+//
+//                coords[i] = nc;
+//
+//                i++;
+//                if (i == 1) {
+//                    nc1 = nc;
+//                }
+//            }
+//
+//            // last point same as first
+//            coords[i] = nc1;
+//
+//        } catch (Exception e) {
+//            coords = null;
+//        }
+//
+//        return coords;
+//    }
 
     /**
      * Return geometry object rings for Esri or coordinates for GeoJSON
@@ -344,7 +344,7 @@ public class GreatCircle {
         int i = 0;
         while (i < numPoints - 1) {
             double v = 0.0;
-            if (isClockwise) {
+            if (false) {  // default to counterclockwise
                 v = i * d - 180.0;  // clockwise (Esri wants this)
             } else {
                 v = 180.0 - i * d;  // counterclockwise (GeoJSON wants this)
@@ -586,21 +586,28 @@ public class GreatCircle {
 
         JSONArray polys = new JSONArray();
         JSONArray poly = new JSONArray();
+        
+        for (i = 0; i<2; i++) {
+            poly = new JSONArray();
+            if (exteriorRing[i].length() > 0) {
+                exteriorRing[i].put(exteriorRing[i].get(0));
 
-        if (exteriorRing[0].length() > 0) {
-            exteriorRing[0].put(exteriorRing[0].get(0));
-            poly.put(exteriorRing[0]);
-            polys.put(poly);
+                if (isClockwise) {
+                    // Reverse order 
+                    JSONArray reversedPoly = new JSONArray();
+                    int j = exteriorRing[i].length() - 1;
+                    while (j >= 0 ) {
+                        reversedPoly.put(exteriorRing[i].get(j));
+                        j--;
+                    }
+                    poly.put(reversedPoly);                    
+                } else {
+                    poly.put(exteriorRing[i]);                    
+                }
+                polys.put(poly);
+            }            
         }
-
-        poly = new JSONArray();
-
-        if (exteriorRing[1].length() > 0) {
-            exteriorRing[1].put(exteriorRing[1].get(0));
-            poly.put(exteriorRing[1]);
-            polys.put(poly);
-        }
-
+        
 //        System.out.println("HERE1");        
 //        i = 0;
 //        while (i < exteriorRing[0].length()) {
@@ -733,7 +740,7 @@ public class GreatCircle {
     public void createGeojsonTest() {
         GreatCircle gc = new GreatCircle();
 
-        double lon = 1.0;
+        double lon = 179.0;
         double lat = 0.0;
         double size = 300.0;
         int numPoints = 20;
@@ -762,7 +769,7 @@ public class GreatCircle {
         features.put(feature);
         featureCollection.put("features", features);
 
-        //System.out.println(featureCollection.toString());
+        System.out.println(featureCollection.toString());
 
         //gc.testCircles();
     }
@@ -771,8 +778,8 @@ public class GreatCircle {
 
         GreatCircle gc = new GreatCircle();
 
-        //JSONArray json = gc.createCircle(179, 89, 200.0, 100, false);
-        gc.createGeojsonTest();
+        JSONArray json = gc.createCircle(179, 89, 200.0, 100, true);
+        //gc.createGeojsonTest();
 
 //        JSONObject featureCollection = new JSONObject();
 //        featureCollection.put("type", "FeatureCollection");

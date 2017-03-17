@@ -35,7 +35,7 @@ public class sattracks extends HttpServlet {
         satNames = new HashMap<>();
         satNums = new HashMap<>();
 
-        String message = null;
+        String message = "";
 
         try {
             InputStream pis = getClass().getResourceAsStream("/sats.tle");
@@ -86,11 +86,10 @@ public class sattracks extends HttpServlet {
         String message = "";
 
         try {
-
             if (satNames == null || satNums == null) {
                 message = loadSats();
 
-                if (!(message == null)) {
+                if (!message.equalsIgnoreCase("")) {
 
                     // Failed to load satellite lists
                     throw new Exception(message);

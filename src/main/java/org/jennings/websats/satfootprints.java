@@ -30,7 +30,7 @@ public class satfootprints extends HttpServlet {
         satNames = new HashMap<>();
         satNums = new HashMap<>();
 
-        String message = null;
+        String message = "";
 
         try {
                         
@@ -73,7 +73,7 @@ public class satfootprints extends HttpServlet {
             if (satNames == null || satNums == null) {
                 message = loadSats();
 
-                if (!(message==null)) {
+                if (!message.equalsIgnoreCase("")) {
 
                     // Failed to load satellite lists
                     throw new Exception(message);
@@ -141,6 +141,12 @@ public class satfootprints extends HttpServlet {
             int numPoints = 50;
             if (!strNumPoints.equalsIgnoreCase("")) {
                 numPoints = Integer.parseInt(strNumPoints);
+                if (numPoints < 20) {
+                    numPoints = 20;
+                }
+                if (numPoints > 500) {
+                    numPoints = 500;
+                }
             }
 
             // Create a list of satellites to return
@@ -230,7 +236,7 @@ public class satfootprints extends HttpServlet {
                         geom2.put("coordinates", polys);
 
                     } else {
-                        geom2.put("rings", polys);
+                        geom2.put("rings", polys.getJSONArray(0));
                     }
 
                     if (format.equalsIgnoreCase("json")) {
