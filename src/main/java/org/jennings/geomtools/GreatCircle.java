@@ -27,6 +27,8 @@ public class GreatCircle {
     private final static DecimalFormat df5 = new DecimalFormat("###0.00000");
     private final static DecimalFormat df3 = new DecimalFormat("###0.000");
 
+    final boolean debug = false;
+    
     /**
      *
      * @param coord1 First Coordinate
@@ -377,7 +379,7 @@ public class GreatCircle {
         i = 0;
         double lon1 = nc1.getLon();
         double lat1 = nc1.getLat();
-        //System.out.println(i + ":" + lon1 + "," + lat1);
+        if (debug) System.out.println(i + ":" + lon1 + "," + lat1);
         JSONArray coord = new JSONArray("[" + lon1 + ", " + lat1 + "]");
         exteriorRing[ringNum].put(coord);
         i++;
@@ -397,13 +399,13 @@ public class GreatCircle {
 
                 if (Math.abs(lon2 - lon1) > 180.0) {
                     // Either gone from -179.xx to 179.xx (Crossing DT heading east)
-                    //System.out.println("Crossing DT heading west");
+                    if (debug) System.out.println("Crossing DT heading west");
                     crossedDTWest = true;
 
                     double x1 = (lon1 < 0) ? lon1 + 360.0 : lon1;
                     double x2 = (lon2 < 0) ? lon2 + 360.0 : lon2;
                     double crossing = findCrossing(x1, lat1, x2, lat2, 180.0);
-                    //System.out.println(crossing);
+                    if (debug) System.out.println(crossing);
 
                     // Add point to current ring
                     coord = new JSONArray("[-180.0, " + crossing + "]");
@@ -438,12 +440,12 @@ public class GreatCircle {
 
                 } else {
                     // or gone from -1.xx to 1.xx  (Crossing 0 heading east)
-                    //System.out.println("Crossing 0 heading east");
+                    if (debug) System.out.println("Crossing 0 heading east");
 
-                    double x1 = (lon1 < 0) ? lon1 + 360.0 : lon1;
-                    double x2 = (lon2 < 0) ? lon2 + 360.0 : lon2;
+                    double x1 = lon1;
+                    double x2 = lon2;
                     double crossing = findCrossing(x1, lat1, x2, lat2, 0.0);
-                    //System.out.println(crossing);
+                    if (debug) System.out.println(crossing);
 
                     // Add point to current ring
                     if (lon2 > 0.0) {
@@ -488,13 +490,13 @@ public class GreatCircle {
 
                 if (Math.abs(lon2 - lon1) > 180.0) {
                     // Either gone from 179.xx to -179.xx (Crossing DT heading west)                    
-                    //System.out.println("Crossing DT heading east");
+                    if (debug) System.out.println("Crossing DT heading east");
                     crossedDTEast = true;
 
                     double x1 = (lon1 < 0) ? lon1 + 360.0 : lon1;
                     double x2 = (lon2 < 0) ? lon2 + 360.0 : lon2;
                     double crossing = findCrossing(x1, lat1, x2, lat2, 180.0);
-                    //System.out.println(crossing);
+                    if (debug) System.out.println(crossing);
 
                     coord = new JSONArray("[180.0, " + crossing + "]");
                     exteriorRing[ringNum].put(coord);
@@ -526,14 +528,14 @@ public class GreatCircle {
                     exteriorRing[ringNum].put(coord);
 
                 } else {
-                    //System.out.println("Crossing 0 heading west");
+                    if (debug) System.out.println("Crossing 0 heading west");
                     crossedZeroWest = true;
 
                     // or gone from 1.xx to -1.xx (Crossing 0 heading west 
-                    double x1 = (lon1 < 0) ? lon1 + 360.0 : lon1;
-                    double x2 = (lon2 < 0) ? lon2 + 360.0 : lon2;
+                    double x1 = lon1;
+                    double x2 = lon2;
                     double crossing = findCrossing(x1, lat1, x2, lat2, 0.0);
-                    //System.out.println(crossing);
+                    if (debug) System.out.println(crossing);
 
                     // Add point to current ring
                     coord = new JSONArray("[0.0, " + crossing + "]");
@@ -569,7 +571,7 @@ public class GreatCircle {
                 }
             }
 
-            //System.out.println(i + ":" + lon2 + "," + lat2);
+            if (debug) System.out.println(i + ":" + lon2 + "," + lat2);
 
             if (i < numPoints - 1) {
                 // Don't inject last point here
@@ -608,19 +610,22 @@ public class GreatCircle {
             }            
         }
         
-//        System.out.println("HERE1");        
-//        i = 0;
-//        while (i < exteriorRing[0].length()) {
-//            System.out.println(exteriorRing[0].get(i));
-//            i++;
-//        }
-//        
-//        System.out.println("HERE2");
-//        i = 0;
-//        while (i < exteriorRing[1].length()) {
-//            System.out.println(exteriorRing[1].get(i));
-//            i++;
-//        }
+        if (debug) {
+            System.out.println("HERE1");        
+            i = 0;
+            while (i < exteriorRing[0].length()) {
+                System.out.println(exteriorRing[0].get(i));
+                i++;
+            }
+
+            System.out.println("HERE2");
+            i = 0;
+            while (i < exteriorRing[1].length()) {
+                System.out.println(exteriorRing[1].get(i));
+                i++;
+            }
+            
+        }
         //System.out.println(poly);
         // Create the Geom
         return polys;
@@ -737,13 +742,9 @@ public class GreatCircle {
 
     }
 
-    public void createGeojsonTest() {
+    public void createGeojsonTest(double lon, double lat, double size, int numPoints) {
         GreatCircle gc = new GreatCircle();
 
-        double lon = 179.0;
-        double lat = 0.0;
-        double size = 300.0;
-        int numPoints = 20;
 
         JSONObject featureCollection = new JSONObject();
         featureCollection.put("type", "FeatureCollection");
@@ -778,9 +779,37 @@ public class GreatCircle {
 
         GreatCircle gc = new GreatCircle();
 
-        JSONArray json = gc.createCircle(179, 89, 200.0, 100, true);
-        //gc.createGeojsonTest();
+        //JSONArray json = gc.createCircle(-1, 30, 200.0, 20, true);
+        int i = 0;
+        System.out.println(++i);
+        gc.createGeojsonTest(-1.0,30.0,300.0,20);
 
+        System.out.println(++i);
+        gc.createGeojsonTest(0.0,40.0,300.0,20);
+        
+        System.out.println(++i);
+        gc.createGeojsonTest(1.0,40.0,300.0,20);
+
+        System.out.println(++i);
+        gc.createGeojsonTest(179.0,-89.0,300.0,20);
+
+        System.out.println(++i);
+        gc.createGeojsonTest(179.0,0.0,300.0,20);
+
+        System.out.println(++i);
+        gc.createGeojsonTest(179.0,89.0,300.0,20);
+
+        System.out.println(++i);
+        gc.createGeojsonTest(-179.0,-89.0,300.0,20);
+
+        System.out.println(++i);
+        gc.createGeojsonTest(-179.0,0.0,300.0,20);
+
+        System.out.println(++i);
+        gc.createGeojsonTest(-179.0,89.0,300.0,20);
+        
+
+        
 //        JSONObject featureCollection = new JSONObject();
 //        featureCollection.put("type", "FeatureCollection");
 //
