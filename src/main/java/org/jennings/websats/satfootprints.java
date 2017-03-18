@@ -111,7 +111,7 @@ public class satfootprints extends HttpServlet {
             String[] satInput;
             ArrayList<String> sats = new ArrayList<>();
 
-            long t = System.currentTimeMillis();  // Default to current system time
+            long t = System.currentTimeMillis();  // Default 1 minute before current time
             if (!strTime.equalsIgnoreCase("")) {
                 t = Long.parseLong(strTime);
                 if (t < 10000000000L) {

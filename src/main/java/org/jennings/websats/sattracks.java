@@ -130,7 +130,7 @@ public class sattracks extends HttpServlet {
             String[] satInput;
             ArrayList<String> sats = new ArrayList<>();
 
-            long tstart = System.currentTimeMillis();  // Default to current system time
+            long tstart = System.currentTimeMillis() - 60000;  // Default to current system time
             if (!strTimeStart.equalsIgnoreCase("")) {
                 tstart = Long.parseLong(strTimeStart);
                 if (tstart < 10000000000L) {

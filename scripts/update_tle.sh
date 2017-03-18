@@ -1,8 +1,11 @@
 #!/bin/bash
 
 NAMES=(stations gps-ops glo-ops resource iridium intelsat iridium-NEXT globalstar orbcomm ses musson science)
-FOLDER=/home/tomcat
-TLEFILE=/opt/tomcat/webapps/websats/WEB-INF/classes/sats.tle
+FOLDER=/home/david
+TLEFILE=/home/david/tomcat8/webapps/websats/WEB-INF/classes/sats.tle
+
+#FOLDER=/home/tomcat
+#TLEFILE=/opt/tomcat/webapps/websats/WEB-INF/classes/sats.tle
 
 > $TLEFILE
 
@@ -14,7 +17,10 @@ do
 	
 done
 
-systemctl stop tomcat8.service
-systemctl start tomcat8.service
+/home/david/tomcat8/bin/shutdown.sh 
+/home/david/tomcat8/bin/startup.sh
+
+#systemctl stop tomcat8.service
+#systemctl start tomcat8.service
 
 
