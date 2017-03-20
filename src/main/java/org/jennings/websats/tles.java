@@ -1,3 +1,8 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package org.jennings.websats;
 
 import java.io.IOException;
@@ -5,10 +10,10 @@ import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.HashSet;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.jennings.geomtools.GreatCircle;
 import org.jennings.mvnsat.Sat;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -17,7 +22,8 @@ import org.json.JSONObject;
  *
  * @author david
  */
-public class satfootprints extends HttpServlet {
+@WebServlet(name = "tles", urlPatterns = {"/tles"})
+public class tles extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -31,16 +37,13 @@ public class satfootprints extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+
         try {
             Sats satDB = new Sats();
 
             String strFormat = "";
-            String strGeomType = "";
             String strNums = "";
             String strNames = "";
-            String strTime = "";
-            String strNumPoints = "";
-            boolean isNums = false;
 
             // Populate the parameters ignoring case
             Enumeration paramNames = request.getParameterNames();
@@ -48,57 +51,22 @@ public class satfootprints extends HttpServlet {
                 String paramName = (String) paramNames.nextElement();
                 if (paramName.equalsIgnoreCase("f")) {
                     strFormat = request.getParameter(paramName);
-                } else if (paramName.equalsIgnoreCase("gt")) {
-                    strGeomType = request.getParameter(paramName);
-                } else if (paramName.equalsIgnoreCase("t")) {
-                    strTime = request.getParameter(paramName);
-                } else if (paramName.equalsIgnoreCase("npts")) {
-                    strNumPoints = request.getParameter(paramName);
                 } else if (paramName.equalsIgnoreCase("names")) {
                     strNames = request.getParameter(paramName);
                 } else if (paramName.equalsIgnoreCase("nums")) {
                     strNums = request.getParameter(paramName);
-                    isNums = true;
                 }
             }
 
-            long t = System.currentTimeMillis();  // Default 1 minute before current time
-            if (!strTime.equalsIgnoreCase("")) {
-                t = Long.parseLong(strTime);
-                if (t < 10000000000L) {
-                    // Assume it seconds convert to ms
-                    t = t * 1000;
-                }
+            String fmt = "txt";
+            if (strFormat.equalsIgnoreCase("txt") || strFormat.equalsIgnoreCase("")) {
+                fmt = "txt";
+            } else if (strFormat.equalsIgnoreCase("json")) {
+                fmt = "json";
+            } else {
+                throw new Exception("Unsupported Format. Supported formats: txt, json");
             }
-
-            boolean isClockwise = true;  // Esri Geoms are clockwise
-            if (!strGeomType.equalsIgnoreCase("")) {
-                if (strGeomType.equalsIgnoreCase("geojson")) {
-                    isClockwise = false;
-                } else {
-                    throw new Exception("Invalid Geometry Type. Values allowed esri or geojson");
-                }
-            }
-
-            String format = "txt";
-            if (!strFormat.equalsIgnoreCase("")) {
-                format = strFormat;
-                if (strFormat.equalsIgnoreCase("geojson")) {
-                    isClockwise = false;
-                }
-            }
-
-            int numPoints = 50;
-            if (!strNumPoints.equalsIgnoreCase("")) {
-                numPoints = Integer.parseInt(strNumPoints);
-                if (numPoints < 20) {
-                    numPoints = 20;
-                }
-                if (numPoints > 500) {
-                    numPoints = 500;
-                }
-            }
-
+            
             HashSet<String> sats = new HashSet<>();
 
             if (strNames.equalsIgnoreCase("") && strNums.equalsIgnoreCase("")) {
@@ -112,68 +80,29 @@ public class satfootprints extends HttpServlet {
                 // Names were specified
                 sats = satDB.getSatsByName(strNames);
             }
+            
 
             JSONArray results = new JSONArray();
             String strLines = "";
 
-            int i = 0;
-
             // Process the list of satellites
             for (String sat : sats) {
-
-                i += 1;
-                Sat st = satDB.getSatNum(sat);
-                Sat pos = st.getPos(t);
-
+                String tle = satDB.getSatTLE(sat);
                 JSONObject result = new JSONObject();
-                JSONArray polys = new JSONArray();
-                try {
-                    double r = pos.getRadiusFootprint();
-                    // Problem with large areas crossing -180 and 180 for now I'll set to small number
 
-                    GreatCircle gc = new GreatCircle();
-                    polys = gc.createCircle(pos.GetLon(), pos.GetParametricLat(), r, numPoints, isClockwise);
+                if (fmt.equalsIgnoreCase("json") || fmt.equalsIgnoreCase("txt")) {
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
 
-                if (format.equalsIgnoreCase("geojson")) {
-
-                    result.put("type", "Feature");
-
-                    JSONObject properties = new JSONObject();
-
-                    properties.put("name", pos.getName());
-                    properties.put("num", sat);
-                    result.put("properties", properties);
-
-                    JSONObject geom = new JSONObject();
-                    geom.put("type", "MultiPolygon");
-                    geom.put("coordinates", polys);
-                    result.put("geometry", geom);
-
-                    results.put(result);
-                } else if (format.equalsIgnoreCase("json") || format.equalsIgnoreCase("txt")) {
-
-                    JSONObject geom2 = new JSONObject();
-                    if (strGeomType.equalsIgnoreCase("geojson")) {
-                        geom2.put("coordinates", polys);
-
-                    } else {
-                        geom2.put("rings", polys.getJSONArray(0));
-                    }
-
-                    if (format.equalsIgnoreCase("json")) {
-                        result.put("name", pos.getName());
-                        result.put("num", sat);
-                        result.put("geometry", geom2);
+                    if (fmt.equalsIgnoreCase("json")) {
+                        String[] tleparts = tle.split("\n");
+                        result.put("header", tleparts[0].trim());
+                        result.put("line1", tleparts[1].trim());
+                        result.put("line2", tleparts[2].trim());
                         results.put(result);
 
                     } else {
-                        // Default to delimited
-                        strLines += pos.getName() + "|" + pos.getNum() + "|"
-                                + geom2.toString() + "\n";
+                        // Default to delimited the geom is inside quotes and replace quotes with \"
+                        strLines += tle + "\n";
 
                     }
 
@@ -181,25 +110,11 @@ public class satfootprints extends HttpServlet {
                     throw new Exception("Invalid format. Supported formats: txt,json,geojson");
                 }
 
-//                if (i == 7) {
-//                    break;
-//                }
             }
-
-            JSONObject resp = new JSONObject();
 
             PrintWriter out = response.getWriter();
 
-            if (format.equalsIgnoreCase("geojson")) {
-                response.setContentType("application/json;charset=UTF-8");
-                JSONObject featureCollection = new JSONObject();
-                featureCollection.put("type", "FeatureCollection");
-
-                featureCollection.put("features", results);
-
-                out.println(featureCollection);
-
-            } else if (format.equalsIgnoreCase("json")) {
+            if (fmt.equalsIgnoreCase("json")) {
                 response.setContentType("application/json;charset=UTF-8");
                 out.println(results.toString());
 
@@ -219,13 +134,13 @@ public class satfootprints extends HttpServlet {
                 out.println("</head>");
                 out.println("<body>");
                 out.println("<h1>Could build satellite array.</h1>");
-
-                out.println("<h2>Unexpected Error: " + e.getMessage() + "</h2>");
+                out.println("<h2>Error: " + e.getMessage() + "</h2>");
                 out.println("</body>");
                 out.println("</html>");
             }
         }
 
+        
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

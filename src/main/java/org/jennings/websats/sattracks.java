@@ -5,14 +5,10 @@
  */
 package org.jennings.websats;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashMap;
+import java.util.HashSet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -28,49 +24,18 @@ import org.json.JSONObject;
  */
 public class sattracks extends HttpServlet {
 
-    private static HashMap<String, Sat> satNames = null;
-    private static HashMap<String, Sat> satNums = null;
 
-    private String loadSats() {
-        satNames = new HashMap<>();
-        satNums = new HashMap<>();
-
-        String message = "";
-
-        try {
-            InputStream pis = getClass().getResourceAsStream("/sats.tle");
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(pis, "UTF-8"));
-            String tleHeader;
-            while ((tleHeader = br.readLine()) != null) {
-                String tleLine1 = br.readLine();
-                String tleLine2 = br.readLine();
-                Sat sat = new Sat(tleHeader, tleLine1, tleLine2);
-
-                satNames.put(sat.getName(), sat);
-                satNums.put(sat.getNum(), sat);
-
-            }
-
-        } catch (Exception e) {
-            message = "ERROR" + e.getClass() + ">>" + e.getMessage();
-            System.out.println(message);
-        }
-        return message;
-    }
-
-    
     private GeographicCoordinate findCrossing(double x1, double y1, double x2, double y2) {
         GeographicCoordinate pt;
-        
-        double m = (y2-y1)/(x2-x1);
-        
-        double latDT = m*(180.0 - x1) + y1;
-        
+
+        double m = (y2 - y1) / (x2 - x1);
+
+        double latDT = m * (180.0 - x1) + y1;
+
         return new GeographicCoordinate(180.0, latDT);
-        
+
     }
-    
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -83,23 +48,13 @@ public class sattracks extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String message = "";
-
         try {
-            if (satNames == null || satNums == null) {
-                message = loadSats();
-
-                if (!message.equalsIgnoreCase("")) {
-
-                    // Failed to load satellite lists
-                    throw new Exception(message);
-                }
-            }
+            Sats satDB = new Sats();
 
             String strFormat = "txt";
             String strGeomType = "";
-            String strNums = "*";
-            String strNames = "*";
+            String strNums = "";
+            String strNames = "";
             String strTimeStart = "";
             String strTimeDuration = "";
             String strTimeStep = "";
@@ -127,9 +82,6 @@ public class sattracks extends HttpServlet {
                 }
             }
 
-            String[] satInput;
-            ArrayList<String> sats = new ArrayList<>();
-
             long tstart = System.currentTimeMillis() - 60000;  // Default to current system time
             if (!strTimeStart.equalsIgnoreCase("")) {
                 tstart = Long.parseLong(strTimeStart);
@@ -149,43 +101,18 @@ public class sattracks extends HttpServlet {
                 tstep = Integer.parseInt(strTimeStep);
             }
 
-            // Create a list of satellites to return
-            if (!strNames.equalsIgnoreCase("*") || !strNums.equalsIgnoreCase("*")) {
-                // User has specified a list
-                if (isNums) {
-                    satInput = strNums.split(",");
-                } else {
-                    satInput = strNames.split(",");
-                }
+            HashSet<String> sats = new HashSet<>();
 
-                for (String sat : satInput) {
-                    if (isNums) {
-                        Sat s = satNums.get(sat);
-                        if (s == null) {
-                            message += sat + ",";
-                        } else {
-                            sats.add(s.getNum());
-                        }
-                    } else {
-                        Sat s = satNames.get(sat);
-                        if (s == null) {
-                            message += sat + ",";
-                        } else {
-                            sats.add(s.getNum());
-                        }
-                    }
-                    if (!message.equalsIgnoreCase("")) {
-                        throw new Exception(message.substring(0, message.length() - 1));
-                    }
-                }
+            if (strNames.equalsIgnoreCase("") && strNums.equalsIgnoreCase("")) {
+                sats = satDB.getAllNums();
+            }
 
-            } else {
-                // No list specified; return all                
-                //satInput = satNums.keySet().toArray(new String[0]);
-                satNums.keySet().stream().forEach((s) -> {
-                    sats.add(s);
-                });
-
+            if (!strNums.equalsIgnoreCase("")) {
+                // Nums were specified 
+                sats = satDB.getSatsByNum(strNums);
+            } else if (!strNames.equalsIgnoreCase("")) {
+                // Names were specified
+                sats = satDB.getSatsByName(strNames);
             }
 
             JSONArray results = new JSONArray();
@@ -193,22 +120,22 @@ public class sattracks extends HttpServlet {
 
             // Process the list of satellites
             for (String sat : sats) {
-                Sat pos = satNums.get(sat).getPos(tstart);
+                Sat st = satDB.getSatNum(sat);
+                Sat pos = st.getPos(tstart);
                 JSONObject result = new JSONObject();
                 JSONArray line = new JSONArray();
                 JSONArray lines = new JSONArray();
-                
+
                 try {
                     long t1 = tstart;
-                    pos = satNums.get(sat).getPos(t1);
+                    pos = st.getPos(t1);
                     double lat1 = pos.GetParametricLat();
                     double lon1 = pos.GetLon();
                     while (t1 <= tstart + tduration * 1000) {
-                        pos = satNums.get(sat).getPos(t1);
+                        pos = st.getPos(t1);
                         double lat2 = pos.GetParametricLat();
                         double lon2 = pos.GetLon();
-                        
-                        
+
                         // If you cross the DateTime line then inject a break at 180
                         if (Math.abs(lon2 - lon1) > 180.0) {
                             System.out.println("");
@@ -218,43 +145,46 @@ public class sattracks extends HttpServlet {
                             System.out.println(lon2 + "," + lat2);
                             double x1 = lon1;
                             double x2 = lon2;
-                            if (lon1 < 0) x1 += 360.0;
-                            if (lon2 < 0) x2 += 360.0;
+                            if (lon1 < 0) {
+                                x1 += 360.0;
+                            }
+                            if (lon2 < 0) {
+                                x2 += 360.0;
+                            }
                             GeographicCoordinate crossing = findCrossing(x1, lat1, x2, lat2);
                             System.out.println(crossing);
-                            
+
                             if (lon1 < 0) {
                                 // Insert with -180
                                 JSONArray coord = new JSONArray("[-180, " + crossing.getLat() + "]");
-                                line.put(coord);                                
+                                line.put(coord);
                             } else {
                                 // Insert with 180
                                 JSONArray coord = new JSONArray("[180, " + crossing.getLat() + "]");
-                                line.put(coord);                                
+                                line.put(coord);
                             }
                             // Insert line and start new line
                             lines.put(line);
                             line = new JSONArray();
-                            
+
                             if (lon2 < 0) {
                                 // Start with -180
                                 JSONArray coord = new JSONArray("[-180, " + crossing.getLat() + "]");
-                                line.put(coord);                                
+                                line.put(coord);
                             } else {
                                 // Start with 180
                                 JSONArray coord = new JSONArray("[180, " + crossing.getLat() + "]");
-                                line.put(coord);                                
+                                line.put(coord);
                             }
-                            
-                            
+
                         }
-                        
+
                         JSONArray coord = new JSONArray("[" + pos.GetLon() + ", " + pos.GetParametricLat() + "]");
                         line.put(coord);
-                        
+
                         lat1 = lat2;
                         lon1 = lon2;
-                        
+
                         t1 += tstep * 1000;
                     }
                     lines.put(line);
@@ -264,9 +194,9 @@ public class sattracks extends HttpServlet {
                 }
 
                 if (strFormat.equalsIgnoreCase("geojson")) {
-                    
+
                     result.put("type", "Feature");
-                    
+
                     JSONObject properties = new JSONObject();
                     properties.put("name", pos.getName());
                     properties.put("num", sat);
@@ -279,32 +209,30 @@ public class sattracks extends HttpServlet {
 
                     results.put(result);
                 } else if (strFormat.equalsIgnoreCase("json") || strFormat.equalsIgnoreCase("txt")) {
-                                                            
-                    
+
                     JSONObject geom2 = new JSONObject();
-                    if (strGeomType.equalsIgnoreCase("geojson")) {                        
+                    if (strGeomType.equalsIgnoreCase("geojson")) {
                         geom2.put("coordinates", line);
 
                     } else {
                         geom2.put("paths", line);
-                    }                    
+                    }
 
                     if (strFormat.equalsIgnoreCase("json")) {
                         result.put("name", pos.getName());
                         result.put("num", sat);
                         result.put("geometry", geom2);
                         results.put(result);
-                        
+
                     } else {
                         // Default to delimited
-                        strLines += pos.getName() + "|" + pos.getNum() + "|" +
-                                geom2.toString() + "\n";
-                        
+                        strLines += pos.getName() + "|" + pos.getNum() + "|"
+                                + geom2.toString() + "\n";
+
                     }
-                    
+
                 } else {
-                    message = "Invalid format. Supported formats: txt,json,geojson";
-                    throw new Exception();
+                    throw new Exception("Invalid format. Supported formats: txt,json,geojson");
                 }
 
             }
@@ -312,7 +240,7 @@ public class sattracks extends HttpServlet {
             JSONObject resp = new JSONObject();
 
             PrintWriter out = response.getWriter();
-                        
+
             if (strFormat.equalsIgnoreCase("geojson")) {
                 response.setContentType("application/json;charset=UTF-8");
                 JSONObject featureCollection = new JSONObject();
@@ -347,11 +275,9 @@ public class sattracks extends HttpServlet {
                 out.println("</head>");
                 out.println("<body>");
                 out.println("<h1>Could build satellite array.</h1>");
-                if (!message.equalsIgnoreCase("")) {
-                    out.println("<h2>Error: " + message + "</h2>");
-                } else {
-                    out.println("<h2>Unexpected Error: " + e.getMessage() + "</h2>");
-                }
+
+                out.println("<h2>Unexpected Error: " + e.getMessage() + "</h2>");
+
                 out.println("</body>");
                 out.println("</html>");
             }

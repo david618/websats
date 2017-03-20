@@ -102,7 +102,6 @@ public class satellites extends HttpServlet {
             }
             
 
-            String[] satInput;
             HashSet<String> sats = new HashSet<>();
 
             if (strNames.equalsIgnoreCase("") && strNums.equalsIgnoreCase("")) {

@@ -8,10 +8,8 @@ package org.jennings.websats;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
 import org.jennings.mvnsat.Sat;
 
 /**
@@ -22,10 +20,12 @@ public class Sats {
 
     private static HashMap<String, Sat> satNames = null;
     private static HashMap<String, Sat> satNums = null;
+    private static HashMap<String, String> satTLEs = null;
 
     private String loadSats() {
         satNames = new HashMap<>();
         satNums = new HashMap<>();
+        satTLEs = new HashMap<>();
 
         String message = "";
 
@@ -41,6 +41,7 @@ public class Sats {
 
                 satNames.put(sat.getName(), sat);
                 satNums.put(sat.getNum(), sat);
+                satTLEs.put(sat.getNum(), tleHeader + "\n" + tleLine1 + "\n" + tleLine2);
 
             }
 
@@ -69,6 +70,10 @@ public class Sats {
         }
     }
 
+    public String getSatTLE(String num) {
+        return satTLEs.get(num);
+    }
+    
     public Sat getSatNum(String num) {
         return satNums.get(num);
     }
@@ -86,22 +91,40 @@ public class Sats {
      */
     public HashSet<String> getSatsByName(String strNames) throws Exception {
         HashSet<String> sats = new HashSet<>();
-        
+
         String[] names = strNames.split(",");
         String message = "";
 
         for (String name : names) {
-            Sat s = satNames.get(name);
-            if (s == null) {
-                message += name + ",";
-            } else {
-                sats.add(s.getNum());
-            }
 
+            String nm = name.trim();
+            if (nm.endsWith("*")) {
+                String prefix = nm.substring(0, nm.length()-1).toUpperCase();
+                if (prefix.equalsIgnoreCase("")) {
+                    // One of the values was * return all 
+                    return getAllNums();
+                } else {
+                    for (String satNm: getAllNames()) {
+                        if (satNm.toUpperCase().startsWith(prefix)) {
+                            Sat s = satNames.get(satNm);                            
+                            sats.add(s.getNum());
+                        }
+                    }
+                }
+
+            } else {
+
+                Sat s = satNames.get(name);
+                if (s == null) {
+                    message += name + ",";
+                } else {
+                    sats.add(s.getNum());
+                }
+            }
         }
         if (!message.equalsIgnoreCase("")) {
             throw new Exception("Sats not found: " + message.substring(0, message.length() - 1));
-        }        
+        }
 
         return sats;
 
@@ -136,6 +159,16 @@ public class Sats {
 
     }
 
+    public HashSet<String> getAllNames() {
+        HashSet<String> sats = new HashSet<>();
+
+        satNames.keySet().stream().forEach((s) -> {
+            sats.add(s);
+        });
+        return sats;
+    }
+    
+    
     public HashSet<String> getAllNums() {
         HashSet<String> sats = new HashSet<>();
 
@@ -148,11 +181,17 @@ public class Sats {
     }
 
     public static void main(String[] args) {
-        Sats t = new Sats();
+//        Sats t = new Sats();
+//
+//        satNums.keySet().stream().forEach((s) -> {
+//            System.out.println(s);
+//        });
 
-        satNums.keySet().stream().forEach((s) -> {
-            System.out.println(s);
-        });
+    
+
+        String name = "*";
+        
+        System.out.println(name.substring(0, name.length()-1));
 
 ////        HashSet<String> s = new HashSet<>() ;
 ////        s.add("David");
