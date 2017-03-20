@@ -97,7 +97,7 @@ public class sattracks extends HttpServlet {
             }
 
             String strFormat = "txt";
-            String strGeomType = "esri";
+            String strGeomType = "";
             String strNums = "*";
             String strNames = "*";
             String strTimeStart = "";

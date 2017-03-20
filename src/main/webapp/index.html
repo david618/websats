@@ -11,6 +11,8 @@
 
         <p><b>/satellites</b></p>
         <p>Returns point geometries</p>
+        
+        <p><i>Parameters</i></p>
         <ul>
             <li> f : Format (json, pjson, geojson; unset or any other value returns csv</li>
             <li> names: Comma separated list of Satellite Names (They have to be exactly as listed)</li>
@@ -55,6 +57,8 @@
 
         <p><b>/sattracks</b></p>
         <p>Returns line geometries</p>
+        
+        <p><i>Parameters</i></p>
         <ul>
             <li> f : Format (txt, json, geojson</li>
             <li> names: Comma separated list of Satellite Names (defaults to all satellites)</li>
@@ -99,6 +103,7 @@
 
         <p><b>/satfootprints</b></p>
         <p>Returns satellite footprints as polygon. Foot prints crossing 180 lon are excluded for now. </p>
+        <p><i>Parameters</i></p>
         <ul>
             <li> f : Format (txt, json, geojson</li>
             <li> names: Comma separated list of Satellite Names (defaults to all satellites)</li>

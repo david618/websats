@@ -5,13 +5,11 @@
  */
 package org.jennings.websats;
 
-import java.io.BufferedReader;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Enumeration;
-import java.util.HashMap;
+import java.util.HashSet;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -28,36 +26,6 @@ import org.json.JSONObject;
 @WebServlet(name = "satellites", urlPatterns = {"/satellites"})
 public class satellites extends HttpServlet {
 
-    private static HashMap<String, Sat> satNames = null;
-    private static HashMap<String, Sat> satNums = null;
-
-    private String loadSats() {
-        satNames = new HashMap<>();
-        satNums = new HashMap<>();
-
-        String message = null;
-
-        try {
-            InputStream pis = getClass().getResourceAsStream("/sats.tle");
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(pis, "UTF-8"));
-            String tleHeader = null;
-            while ((tleHeader = br.readLine()) != null) {
-                String tleLine1 = br.readLine();
-                String tleLine2 = br.readLine();
-                Sat sat = new Sat(tleHeader, tleLine1, tleLine2);
-
-                satNames.put(sat.getName(), sat);
-                satNums.put(sat.getNum(), sat);
-
-            }
-
-        } catch (Exception e) {
-            message = "ERROR" + e.getClass() + ">>" + e.getMessage();
-            System.out.println(message);
-        }
-        return message;
-    }
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -65,284 +33,197 @@ public class satellites extends HttpServlet {
      *
      * @param request servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
+     * @throws ServletException if satDB servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        if (satNames == null || satNums == null) {
-            String msg = loadSats();
-            if (msg != null) {
-                response.setContentType("text/html;charset=UTF-8");
 
-                try (PrintWriter out = response.getWriter()) {
-                    /* TODO output your page here. You may use following sample code. */
-                    out.println("<!DOCTYPE html>");
-                    out.println("<html>");
-                    out.println("<head>");
-                    out.println("<title>Error Loading Satelites</title>");
-                    out.println("</head>");
-                    out.println("<body>");
-                    out.println("<h1>Could not load satellites</h1>");
-                    out.println("</body>");
-                    out.println("</html>");
-                }
-
-            }
-        }
-
-        String strFormat = "text";
-        String strNums = "*";
-        String strNames = "*";
-        String strTime = "";
-        boolean isNums = false;
-
-        // Populate the parameters ignoring case
-        Enumeration paramNames = request.getParameterNames();
-        while (paramNames.hasMoreElements()) {
-            String paramName = (String) paramNames.nextElement();
-            if (paramName.equalsIgnoreCase("f")) {
-                strFormat = request.getParameter(paramName);
-            } else if (paramName.equalsIgnoreCase("t")) {
-                strTime = request.getParameter(paramName);
-            } else if (paramName.equalsIgnoreCase("names")) {
-                strNames = request.getParameter(paramName);
-            } else if (paramName.equalsIgnoreCase("nums")) {
-                strNums = request.getParameter(paramName);
-                isNums = true;
-            }
-        }
 
         try {
+            Sats satDB = new Sats();
 
-            String[] satArray = null;
+            String strFormat = "";
+            String strNums = "";
+            String strNames = "";
+            String strTime = "";
+            String strGeomType = "";
+            String strDel = ",";
 
-            long t = System.currentTimeMillis();  // Default to current system time
+            // Populate the parameters ignoring case
+            Enumeration paramNames = request.getParameterNames();
+            while (paramNames.hasMoreElements()) {
+                String paramName = (String) paramNames.nextElement();
+                if (paramName.equalsIgnoreCase("f")) {
+                    strFormat = request.getParameter(paramName);
+                } else if (paramName.equalsIgnoreCase("gt")) {
+                    strGeomType = request.getParameter(paramName);
+                } else if (paramName.equalsIgnoreCase("t")) {
+                    strTime = request.getParameter(paramName);
+                } else if (paramName.equalsIgnoreCase("names")) {
+                    strNames = request.getParameter(paramName);
+                } else if (paramName.equalsIgnoreCase("nums")) {
+                    strNums = request.getParameter(paramName);
+                }
+            }
+
+            String fmt = "txt";
+            if (strFormat.equalsIgnoreCase("txt") || strFormat.equalsIgnoreCase("")) {
+                fmt = "txt";
+            } else if (strFormat.equalsIgnoreCase("json")) {
+                fmt = "json";
+            } else if (strFormat.equalsIgnoreCase("geojson")) {
+                fmt = "geojson";
+            } else {
+                throw new Exception("Unsupported Format. Supported formats: txt, json, geojson");
+            }
+            
+
+            String geomType = "";
+            if (!strGeomType.equalsIgnoreCase("")) {
+                if (strGeomType.equalsIgnoreCase("geojson")) {
+                    geomType = "geojson";
+                } else if (strGeomType.equalsIgnoreCase("esri")) {
+                    geomType = "esri";
+                } else {
+                    throw new Exception("Unsupported Geometry Type. Must be esri or geojson");
+                }
+            }
+            
+            
+            long t = System.currentTimeMillis();
             if (!strTime.equalsIgnoreCase("")) {
                 t = Long.parseLong(strTime);
                 if (t < 10000000000L) {
                     // Assume it seconds convert to ms
                     t = t * 1000;
                 }
-            }            
+            }
             
-            
-            // Nums trumps names
-            if (isNums) {
-                if (strNums.equalsIgnoreCase("*")) {
-                    satArray = satNums.keySet().toArray(new String[0]);
-                } else {
-                    satArray = strNums.split(",");
-                }
-            } else if (strNames.equalsIgnoreCase("*")) {
-                satArray = satNames.keySet().toArray(new String[0]);
-            } else {
-                satArray = strNames.split(",");
+
+            String[] satInput;
+            HashSet<String> sats = new HashSet<>();
+
+            if (strNames.equalsIgnoreCase("") && strNums.equalsIgnoreCase("")) {
+                sats = satDB.getAllNums();
             }
 
-            int numSats = satArray.length;
+            if (!strNums.equalsIgnoreCase("")) {
+                // Nums were specified 
+                sats = satDB.getSatsByNum(strNums);
+            } else if (!strNames.equalsIgnoreCase("")) {
+                // Names were specified
+                sats = satDB.getSatsByName(strNames);
+            }
+            
 
-            if (strFormat.equalsIgnoreCase("json") || strFormat.equalsIgnoreCase("pjson")) {
-                // Return Json
-                JSONArray jsonSatArray = new JSONArray();
-                JSONObject jsonSat = new JSONObject();
+            JSONArray results = new JSONArray();
+            String strLines = "";
 
-                response.setContentType("application/json;charset=UTF-8");
-                try (PrintWriter out = response.getWriter()) {
-                    
+            // Process the list of satellites
+            for (String sat : sats) {
+                Sat pos = satDB.getSatNum(sat).getPos(t);
+                JSONObject result = new JSONObject();
+                JSONArray line = new JSONArray();
+                JSONArray lines = new JSONArray();
 
-                    for (String sat : satArray) {
-                        //System.out.println(sat);
-                        Sat pos = null;
-                        String message = "";
-                        if (isNums) {
-                            Sat s = satNums.get(sat);
-                            if (s == null) {
-                                // No satellite with that num
-                                message = "No sattelite with num: " + sat;
-                            } else {
-                                try {
-                                    pos = s.getPos(t);
-                                } catch (Exception e) {
-                                    // Some will be missed if time is in the past
-                                }
-                            }
+                if (fmt.equalsIgnoreCase("geojson")) {
 
-                        } else {
-                            Sat s = satNames.get(sat);
-                            if (s == null) {
-                                // No satellite with that Name
-                                message = "No sattelite with name: " + sat;
-                            } else {
-                                try {
-                                    pos = s.getPos(t);
-                                } catch (Exception e) {
-                                    // Some will be missed if time is in the past
-                                }
+                    result.put("type", "Feature");
 
-                            }
+                    JSONObject properties = new JSONObject();
+                    properties.put("name", pos.getName());
+                    properties.put("num", pos.getNum());
+                    properties.put("timestamp", pos.GetEpoch().epochTimeSecs());
+                    properties.put("dtg", pos.GetEpoch());
+                    properties.put("lon", pos.GetLon());
+                    properties.put("lat", pos.GetParametricLat());
+                    properties.put("alt", pos.getAltitude());
+                    result.put("properties", properties);
 
-                        }
+                    JSONObject geom = new JSONObject();
+                    geom.put("type", "Point");
+                    JSONArray coord = new JSONArray("[" + pos.GetLon() + ", " + pos.GetParametricLat() + "]");
+                    geom.put("coordinates", coord);
+                    result.put("geometry", geom);
 
-                        JSONObject json = new JSONObject();
-                        if (pos == null) {
-                            json.put("error", message);
-                        } else {
-                            json.put("name", pos.getName());
-                            json.put("num", pos.getNum());
-                            json.put("timestamp", pos.GetEpoch().epochTimeSecs());
-                            json.put("dtg", pos.GetEpoch());
-                            json.put("lon", pos.GetLon());
-                            json.put("lat", pos.GetParametricLat());
-                            json.put("alt", pos.getAltitude());
+                    results.put(result);
+                } else if (fmt.equalsIgnoreCase("json") || fmt.equalsIgnoreCase("txt")) {
 
-                        }
-
-                        if (numSats == 1) {
-                            jsonSat = json;
-                        }
-
-                        jsonSatArray.put(json);
-
-                    }
-
-                    if (strFormat.equalsIgnoreCase("json")) {
-                        if (numSats == 1) {
-                            out.println(jsonSat.toString());
-                        } else {
-                            out.println(jsonSatArray.toString());
-                        }
-                    } else if (numSats == 1) {
-                        out.println(jsonSat.toString(2));
+                    JSONObject geom2 = new JSONObject();
+                    if (strGeomType.equalsIgnoreCase("geojson")) {
+                        JSONArray coord = new JSONArray("[" + pos.GetLon() + ", " + pos.GetParametricLat() + "]");
+                        geom2.put("coordinates", coord);
                     } else {
-                        out.println(jsonSatArray.toString(2));
+
+                        geom2.put("x", pos.GetLon());
+                        geom2.put("y", pos.GetParametricLat());
+
                     }
 
-                }
-            } else if (strFormat.equalsIgnoreCase("geojson")) {
-                // Standard GeoJSON Outuput
+                    if (fmt.equalsIgnoreCase("json")) {
+                        result.put("name", pos.getName());
+                        result.put("num", sat);
+                        result.put("geometry", geom2);
+                        results.put(result);
 
+                    } else if (strGeomType.equalsIgnoreCase("")) {
+                        // Default is no geom at all just lon,lat
+                        strLines += pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeSecs()
+                                + strDel + pos.GetEpoch() + strDel + pos.GetLon() + strDel + pos.GetParametricLat()
+                                + strDel + pos.getAltitude() + "\n";
+                    } else {
+                        // Default to delimited the geom is inside quotes and replace quotes with \"
+                        strLines += pos.getName() + strDel + pos.getNum() + strDel
+                                + "\"" + geom2.toString().replace("\"", "\\\"") + "\"" + "\n";
+
+                    }
+
+                } else {
+                    throw new Exception("Invalid format. Supported formats: txt,json,geojson");
+                }
+
+            }
+
+            JSONObject resp = new JSONObject();
+
+            PrintWriter out = response.getWriter();
+
+            if (fmt.equalsIgnoreCase("geojson")) {
+                response.setContentType("application/json;charset=UTF-8");
                 JSONObject featureCollection = new JSONObject();
                 featureCollection.put("type", "FeatureCollection");
 
-                JSONArray features = new JSONArray();
+                featureCollection.put("features", results);
 
+                out.println(featureCollection);
+
+            } else if (fmt.equalsIgnoreCase("json")) {
                 response.setContentType("application/json;charset=UTF-8");
-                try (PrintWriter out = response.getWriter()) {
-                    
 
-                    for (String sat : satArray) {
-                        //System.out.println(sat);
-                        Sat pos = null;
-                        String message = "";
-                        if (isNums) {
-                            Sat s = satNums.get(sat);
-                            if (s == null) {
-                                // No satellite with that num
-                                message = "No sattelite with num: " + sat;
-                            } else {
-                                try {
-                                    pos = s.getPos(t);
-                                } catch (Exception e) {
-                                    // Some will be missed if time is in the past
-                                }
-                            }
-
-                        } else {
-                            Sat s = satNames.get(sat);
-                            if (s == null) {
-                                // No satellite with that Name
-                                message = "No sattelite with name: " + sat;
-                            } else {
-                                try {
-                                    pos = s.getPos(t);
-                                } catch (Exception e) {
-                                    // Some will be missed if time is in the past
-                                }
-
-                            }
-
-                        }
-
-                        JSONObject feature = new JSONObject();
-                        feature.put("type", "Feature");
-                        
-                        JSONObject properties = new JSONObject();
-                        
-                        if (pos == null) {
-                            // Not sure how to handle errors yet for gjson
-                        } else {
-                            properties.put("name", pos.getName());
-                            properties.put("num", pos.getNum());
-                            properties.put("timestamp", pos.GetEpoch().epochTimeSecs());
-                            properties.put("dtg", pos.GetEpoch());
-                            properties.put("lon", pos.GetLon());
-                            properties.put("lat", pos.GetParametricLat());
-                            properties.put("alt", pos.getAltitude());
-                            feature.put("properties", properties);
-                            
-                            JSONObject geom = new JSONObject();
-                            geom.put("type", "Point");
-                            JSONArray coord = new JSONArray("[" + pos.GetLon() + ", " + pos.GetParametricLat()+ "]");
-                            geom.put("coordinates",coord);                            
-                            feature.put("geometry", geom);
-                            
-                            features.put(feature);
-                            
-                        }
-
-                        
-
-                    }
-                
-                    featureCollection.put("features",features);                           
-
-                    out.println(featureCollection);
-                    
-                }
+                out.println(results.toString());
 
             } else {
-                // Return Text
+                // Pipe Delimited
                 response.setContentType("text/plain;charset=UTF-8");
-                try (PrintWriter out = response.getWriter()) {
-                    
-
-                    for (String sat : satArray) {
-                        //System.out.println(sat);                        
-                        String message = null;
-                        Sat pos;
-                        if (isNums) {
-                            pos = satNums.get(sat);
-
-                        } else {
-                            pos = satNames.get(sat);
-                        }
-
-                        String strLine = null;
-                        if (pos == null) {
-                            strLine = "# No satellite : " + sat;
-
-                        } else {
-                            try {
-                                pos = pos.getPos(t);
-                                strLine = pos.getName() + "|" + pos.getNum() + "|" + pos.GetEpoch().epochTimeSecs() + "|"
-                                        + pos.GetEpoch() + "|" + pos.GetLon() + "|" + pos.GetParametricLat()
-                                        + "|" + pos.getAltitude();
-                            } catch (Exception e) {
-                                // Skipping errors for now
-                            }
-                        }
-
-                        out.println(strLine);
-
-                    }
-
-                }
+                out.println(strLines);
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            try (PrintWriter out = response.getWriter()) {
+                /* TODO output your page here. You may use following sample code. */
+                out.println("<!DOCTYPE html>");
+                out.println("<html>");
+                out.println("<head>");
+                out.println("<title>Error Creating Satellite Array</title>");
+                out.println("</head>");
+                out.println("<body>");
+                out.println("<h1>Could build satellite array.</h1>");
+                out.println("<h2>Error: " + e.getMessage() + "</h2>");
+                out.println("</body>");
+                out.println("</html>");
+            }
         }
 
     }
@@ -353,7 +234,7 @@ public class satellites extends HttpServlet {
      *
      * @param request servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
+     * @throws ServletException if satDB servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
     @Override
@@ -367,7 +248,7 @@ public class satellites extends HttpServlet {
      *
      * @param request servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
+     * @throws ServletException if satDB servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
     @Override
@@ -377,9 +258,9 @@ public class satellites extends HttpServlet {
     }
 
     /**
-     * Returns a short description of the servlet.
+     * Returns satDB short description of the servlet.
      *
-     * @return a String containing servlet description
+     * @return satDB String containing servlet description
      */
     @Override
     public String getServletInfo() {
