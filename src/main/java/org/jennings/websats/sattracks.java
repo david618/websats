@@ -215,7 +215,9 @@ public class sattracks extends HttpServlet {
                         geom2.put("coordinates", line);
 
                     } else {
-                        geom2.put("paths", line);
+                        JSONArray path = new JSONArray();
+                        path.put(line);
+                        geom2.put("paths", path);
                     }
 
                     if (strFormat.equalsIgnoreCase("json")) {
@@ -252,12 +254,13 @@ public class sattracks extends HttpServlet {
 
             } else if (strFormat.equalsIgnoreCase("json")) {
                 response.setContentType("application/json;charset=UTF-8");
-                resp.put("startTime", tstart);
-                resp.put("duration", tduration);
-                resp.put("step", tstep);
-                resp.put("sats", results);
+                //resp.put("startTime", tstart);
+                //resp.put("duration", tduration);
+                //resp.put("step", tstep);
+                //resp.put("sats", results);                
 
-                out.println(resp.toString());
+                //out.println(resp.toString());
+                out.println(results.toString());
 
             } else {
                 // Pipe Delimited

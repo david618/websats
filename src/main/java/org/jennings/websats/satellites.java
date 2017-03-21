@@ -5,7 +5,6 @@
  */
 package org.jennings.websats;
 
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
@@ -26,7 +25,6 @@ import org.json.JSONObject;
 @WebServlet(name = "satellites", urlPatterns = {"/satellites"})
 public class satellites extends HttpServlet {
 
-
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -38,8 +36,6 @@ public class satellites extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-
 
         try {
             Sats satDB = new Sats();
@@ -78,7 +74,6 @@ public class satellites extends HttpServlet {
             } else {
                 throw new Exception("Unsupported Format. Supported formats: txt, json, geojson");
             }
-            
 
             String geomType = "";
             if (!strGeomType.equalsIgnoreCase("")) {
@@ -90,8 +85,7 @@ public class satellites extends HttpServlet {
                     throw new Exception("Unsupported Geometry Type. Must be esri or geojson");
                 }
             }
-            
-            
+
             long t = System.currentTimeMillis();
             if (!strTime.equalsIgnoreCase("")) {
                 t = Long.parseLong(strTime);
@@ -100,7 +94,6 @@ public class satellites extends HttpServlet {
                     t = t * 1000;
                 }
             }
-            
 
             HashSet<String> sats = new HashSet<>();
 
@@ -115,7 +108,6 @@ public class satellites extends HttpServlet {
                 // Names were specified
                 sats = satDB.getSatsByName(strNames);
             }
-            
 
             JSONArray results = new JSONArray();
             String strLines = "";
@@ -151,7 +143,7 @@ public class satellites extends HttpServlet {
                 } else if (fmt.equalsIgnoreCase("json") || fmt.equalsIgnoreCase("txt")) {
 
                     JSONObject geom2 = new JSONObject();
-                    if (strGeomType.equalsIgnoreCase("geojson")) {
+                    if (geomType.equalsIgnoreCase("geojson")) {
                         JSONArray coord = new JSONArray("[" + pos.GetLon() + ", " + pos.GetParametricLat() + "]");
                         geom2.put("coordinates", coord);
                     } else {
@@ -164,10 +156,18 @@ public class satellites extends HttpServlet {
                     if (fmt.equalsIgnoreCase("json")) {
                         result.put("name", pos.getName());
                         result.put("num", sat);
-                        result.put("geometry", geom2);
+                        result.put("timestamp", pos.GetEpoch().epochTimeSecs());
+                        result.put("dtg", pos.GetEpoch());
+                        result.put("lon", pos.GetLon());
+                        result.put("lat", pos.GetParametricLat());
+                        result.put("alt", pos.getAltitude());
+                        if (!geomType.equalsIgnoreCase("")) {
+                            result.put("geometry", geom2);
+                        } 
+                        
                         results.put(result);
 
-                    } else if (strGeomType.equalsIgnoreCase("")) {
+                    } else if (geomType.equalsIgnoreCase("")) {
                         // Default is no geom at all just lon,lat
                         strLines += pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeSecs()
                                 + strDel + pos.GetEpoch() + strDel + pos.GetLon() + strDel + pos.GetParametricLat()
