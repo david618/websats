@@ -192,9 +192,11 @@ public class GreatCircle {
                 k = Math.acos(Math.cos(alpha) * Math.cos(l * D2R)
                         + Math.sin(alpha) * Math.sin(l * D2R) * Math.cos(hdng * D2R));
                 lat2 = 90 - k * R2D;
-                //phi = Math.asin(Math.sin(hdng*D2R) * Math.sin(alpha)/ Math.sin(k)); 
-                phi = Math.acos((Math.cos(alpha) - Math.cos(k) * Math.cos(l * D2R))
-                        / (Math.sin(k) * Math.sin(l * D2R)));
+                double n = (Math.cos(alpha) - Math.cos(k) * Math.cos(l * D2R))
+                        / (Math.sin(k) * Math.sin(l * D2R));                
+                if (n > 1) n = 1;
+                if (n < -1) n = -1;                
+                phi = Math.acos(n);                                
                 lon2 = lon1 + phi * R2D;
                 theta = Math.sin(phi) * Math.sin(l * D2R) / Math.sin(alpha);
                 hdng2 = 180 - theta * R2D;
@@ -204,10 +206,12 @@ public class GreatCircle {
                 alpha = dist / Earth.Radius;
                 k = Math.acos(Math.cos(alpha) * Math.cos(l * D2R)
                         + Math.sin(alpha) * Math.sin(l * D2R) * Math.cos(gamma * D2R));
-                lat2 = 90 - k * R2D;
-                //phi = Math.asin(Math.sin(gamma*D2R) * Math.sin(alpha)/ Math.sin(k));                       
-                phi = Math.acos((Math.cos(alpha) - Math.cos(k) * Math.cos(l * D2R))
-                        / (Math.sin(k) * Math.sin(l * D2R)));
+                lat2 = 90 - k * R2D;               
+                double n = (Math.cos(alpha) - Math.cos(k) * Math.cos(l * D2R))
+                        / (Math.sin(k) * Math.sin(l * D2R));                
+                if (n > 1) n = 1;
+                if (n < -1) n = -1;                
+                phi = Math.acos(n);                                
                 lon2 = lon1 - phi * R2D;
                 theta = Math.sin(phi) * Math.sin(l * D2R) / Math.sin(alpha);
                 hdng2 = 180 - theta * R2D;
@@ -251,6 +255,13 @@ public class GreatCircle {
             lat2 = -1000;
         }
 
+        if (lon2 < -180.0) {
+            System.out.println(lon2);
+            System.out.println(distB.getBearing());
+            
+            
+        }
+        
         GeographicCoordinate nc = new GeographicCoordinate(lon2, lat2);
 
         return nc;
@@ -318,6 +329,344 @@ public class GreatCircle {
 //        return coords;
 //    }
 
+    /**
+     * Return geometry object rings for Esri or coordinates for GeoJSON
+     *
+     * @param clon
+     * @param clat
+     * @param a
+     * @param b
+     * @param rotationDeg
+     * @param radius
+     * @param isClockwise
+     * @param numPoints
+     * @param isEsri
+     * @return
+     */
+    public JSONArray createEllipse(double clon, double clat, Double a, Double b, Double rotationDeg, Integer numPoints, boolean isClockwise) {
+
+        if (numPoints == null) {
+            numPoints = 20;
+        }
+
+        if (a == null) {
+            // default to 50 meters or 0.050 km
+            a = 0.050;
+        }
+        
+        if (b == null) {
+            // default to 50 meters or 0.050 km
+            a = 0.050;
+        }
+        
+        if (rotationDeg == null) {
+            rotationDeg = 0.0;
+        }
+        
+
+        double d = 360.0 / (numPoints - 1);
+
+        GeographicCoordinate coords[] = new GeographicCoordinate[numPoints];
+
+        int i = 0;
+        while (i < numPoints - 1) {
+            double v = 0.0;
+            if (false) {  // default to counterclockwise
+                v = i * d - 180.0;  // clockwise (Esri wants this)
+            } else {
+                v = 180.0 - i * d;  // counterclockwise (GeoJSON wants this)
+            }
+
+            GeographicCoordinate coord1 = new GeographicCoordinate(clon, clat);
+            double r = v*D2R;
+            double sv = Math.sin(r);
+            double cv = Math.cos(r);
+            double radiusKM = a * b / Math.sqrt(a*a*sv*sv + b*b*cv*cv);
+            DistanceBearing distb = new DistanceBearing(radiusKM, v);
+            
+            if (rotationDeg != 0.0) {
+                double bearing = (distb.getBearing() + rotationDeg) % 360.0;
+                distb.setBearing(bearing);
+            }
+
+            GeographicCoordinate nc = getNewCoordPair(coord1, distb);
+
+            coords[i] = nc;
+            i++;
+
+        }
+
+        coords[numPoints - 1] = coords[0]; // Last point same as first
+
+        GeographicCoordinate nc1 = new GeographicCoordinate();
+        GeographicCoordinate nc2 = new GeographicCoordinate();
+        GeographicCoordinate lastcoord = new GeographicCoordinate();
+
+        JSONArray[] exteriorRing = new JSONArray[4];
+        exteriorRing[0] = new JSONArray();
+        exteriorRing[1] = new JSONArray();
+
+        int ringNum = 0;
+        int numRings = 1;
+
+        nc1 = coords[0];
+        i = 0;
+        double lon1 = nc1.getLon();
+        double lat1 = nc1.getLat();
+        if (debug) System.out.println(i + ":" + lon1 + "," + lat1);
+        JSONArray coord = new JSONArray("[" + lon1 + ", " + lat1 + "]");
+        exteriorRing[ringNum].put(coord);
+        i++;
+
+        boolean crossedDTEast = false;
+        boolean crossedDTWest = false;
+        boolean crossedZeroEast = false;
+        boolean crossedZeroWest = false;
+
+        while (i < numPoints) {
+            nc2 = coords[i];
+            // Compare coordinates
+            double lon2 = nc2.getLon();
+            double lat2 = nc2.getLat();
+
+            if (lon2 >= 0.0 && lon1 <= 0.0) {
+
+                if (Math.abs(lon2 - lon1) > 180.0) {
+                    // Either gone from -179.xx to 179.xx (Crossing DT heading east)
+                    if (debug) System.out.println("Crossing DT heading west");
+                    crossedDTWest = true;
+
+                    double x1 = (lon1 < 0) ? lon1 + 360.0 : lon1;
+                    double x2 = (lon2 < 0) ? lon2 + 360.0 : lon2;
+                    double crossing = findCrossing(x1, lat1, x2, lat2, 180.0);
+                    if (debug) System.out.println(crossing);
+
+                    // Add point to current ring
+                    coord = new JSONArray("[-180.0, " + crossing + "]");
+                    exteriorRing[ringNum].put(coord);
+
+                    if (crossedZeroWest) {
+                        // South Pole in Footprint
+                        coord = new JSONArray("[-180.0, -90.0]");
+                        exteriorRing[ringNum].put(coord);
+                        coord = new JSONArray("[0.0, -90.0]");
+                        exteriorRing[ringNum].put(coord);
+                    }
+
+                    // Swith to other ring
+                    if (ringNum == 0) {
+                        ringNum = 1;
+                    } else if (ringNum == 1) {
+                        ringNum = 0;
+                    }
+
+                    if (crossedZeroWest) {
+                        // South Pole in Footprint
+                        coord = new JSONArray("[0.0, -90.0]");
+                        exteriorRing[ringNum].put(coord);
+                        coord = new JSONArray("[180, -90.0]");
+                        exteriorRing[ringNum].put(coord);
+                    }
+
+                    // Add point to other ring
+                    coord = new JSONArray("[180.0, " + crossing + "]");
+                    exteriorRing[ringNum].put(coord);
+
+                } else {
+                    // or gone from -1.xx to 1.xx  (Crossing 0 heading east)
+                    if (debug) System.out.println("Crossing 0 heading east");
+
+                    double x1 = lon1;
+                    double x2 = lon2;
+                    double crossing = findCrossing(x1, lat1, x2, lat2, 0.0);
+                    if (debug) System.out.println(crossing);
+
+                    // Add point to current ring
+                    if (lon2 > 0.0) {
+                        coord = new JSONArray("[0.0, " + crossing + "]");
+                        exteriorRing[ringNum].put(coord);
+                    }
+
+                    if (crossedDTEast) {
+                        // North Pole is in footprint add 180,90 and 0, 90 
+                        coord = new JSONArray("[0.0,90.0]");
+                        exteriorRing[ringNum].put(coord);
+                        coord = new JSONArray("[-180.0,90.0]");
+                        exteriorRing[ringNum].put(coord);
+                    }
+
+                    // Swith to other ring
+                    if (ringNum == 0) {
+                        ringNum = 1;
+                    } else if (ringNum == 1) {
+                        ringNum = 0;
+                    }
+
+                    if (crossedDTEast) {
+                        // North pole is in foot print add point 0,90, -180,90  
+                        coord = new JSONArray("[180.0,90.0]");
+                        exteriorRing[ringNum].put(coord);
+                        coord = new JSONArray("[0.0,90.0]");
+                        exteriorRing[ringNum].put(coord);
+
+                    }
+
+                    // Add point to other ring
+                    if (lon2 > 0.0) {
+                        coord = new JSONArray("[0.0, " + crossing + "]");
+                        exteriorRing[ringNum].put(coord);
+                    }
+
+                    crossedZeroEast = true;
+                }
+
+            } else if (lon2 < 0.0 && lon1 > 0.0) {
+
+                if (Math.abs(lon2 - lon1) > 180.0) {
+                    // Either gone from 179.xx to -179.xx (Crossing DT heading west)                    
+                    if (debug) System.out.println("Crossing DT heading east");
+                    crossedDTEast = true;
+
+                    double x1 = (lon1 < 0) ? lon1 + 360.0 : lon1;
+                    double x2 = (lon2 < 0) ? lon2 + 360.0 : lon2;
+                    double crossing = findCrossing(x1, lat1, x2, lat2, 180.0);
+                    if (debug) System.out.println(crossing);
+
+                    coord = new JSONArray("[180.0, " + crossing + "]");
+                    exteriorRing[ringNum].put(coord);
+
+                    if (crossedZeroEast) {
+                        // North Pole in Footprint
+                        coord = new JSONArray("[180.0, 90.0]");
+                        exteriorRing[ringNum].put(coord);
+                        coord = new JSONArray("[0.0, 90.0]");
+                        exteriorRing[ringNum].put(coord);
+                    }
+
+                    // Swith to other ring
+                    if (ringNum == 0) {
+                        ringNum = 1;
+                    } else if (ringNum == 1) {
+                        ringNum = 0;
+                    }
+
+                    if (crossedZeroEast) {
+                        // North Pole in Footprint
+                        coord = new JSONArray("[0.0, 90.0]");
+                        exteriorRing[ringNum].put(coord);
+                        coord = new JSONArray("[-180, 90.0]");
+                        exteriorRing[ringNum].put(coord);
+                    }
+
+                    coord = new JSONArray("[-180.0, " + crossing + "]");
+                    exteriorRing[ringNum].put(coord);
+
+                } else {
+                    if (debug) System.out.println("Crossing 0 heading west");
+                    crossedZeroWest = true;
+
+                    // or gone from 1.xx to -1.xx (Crossing 0 heading west 
+                    double x1 = lon1;
+                    double x2 = lon2;
+                    double crossing = findCrossing(x1, lat1, x2, lat2, 0.0);
+                    if (debug) System.out.println(crossing);
+
+                    // Add point to current ring
+                    coord = new JSONArray("[0.0, " + crossing + "]");
+                    exteriorRing[ringNum].put(coord);
+
+                    if (crossedDTWest) {
+                        // South Pole is in footprint 
+                        coord = new JSONArray("[0.0,-90.0]");
+                        exteriorRing[ringNum].put(coord);
+                        coord = new JSONArray("[180.0,-90.0]");
+                        exteriorRing[ringNum].put(coord);
+                    }
+
+                    // Swith to other ring
+                    if (ringNum == 0) {
+                        ringNum = 1;
+                    } else if (ringNum == 1) {
+                        ringNum = 0;
+                    }
+
+                    if (crossedDTWest) {
+                        // North pole is in foot print add point 0,90, -180,90  
+                        coord = new JSONArray("[-180.0,-90.0]");
+                        exteriorRing[ringNum].put(coord);
+                        coord = new JSONArray("[0.0,-90.0]");
+                        exteriorRing[ringNum].put(coord);
+
+                    }
+
+                    // Add point to other ring
+                    coord = new JSONArray("[0.0, " + crossing + "]");
+                    exteriorRing[ringNum].put(coord);
+                }
+            }
+
+            if (debug) System.out.println(i + ":" + lon2 + "," + lat2);
+
+            if (i < numPoints - 1) {
+                // Don't inject last point here
+                coord = new JSONArray("[" + lon2 + ", " + lat2 + "]");
+                exteriorRing[ringNum].put(coord);
+            }
+
+            nc1 = nc2;
+            lon1 = nc1.getLon();
+            lat1 = nc1.getLat();
+            i++;
+
+        }
+
+        JSONArray polys = new JSONArray();
+        JSONArray poly = new JSONArray();
+        
+        for (i = 0; i<2; i++) {
+            poly = new JSONArray();
+            if (exteriorRing[i].length() > 0) {
+                exteriorRing[i].put(exteriorRing[i].get(0));
+
+                if (isClockwise) {
+                    // Reverse order 
+                    JSONArray reversedPoly = new JSONArray();
+                    int j = exteriorRing[i].length() - 1;
+                    while (j >= 0 ) {
+                        reversedPoly.put(exteriorRing[i].get(j));
+                        j--;
+                    }
+                    poly.put(reversedPoly);                    
+                } else {
+                    poly.put(exteriorRing[i]);                    
+                }
+                polys.put(poly);
+            }            
+        }
+        
+        if (debug) {
+            System.out.println("HERE1");        
+            i = 0;
+            while (i < exteriorRing[0].length()) {
+                System.out.println(exteriorRing[0].get(i));
+                i++;
+            }
+
+            System.out.println("HERE2");
+            i = 0;
+            while (i < exteriorRing[1].length()) {
+                System.out.println(exteriorRing[1].get(i));
+                i++;
+            }
+            
+        }
+        //System.out.println(poly);
+        // Create the Geom
+        return polys;
+
+    }
+    
+    
     /**
      * Return geometry object rings for Esri or coordinates for GeoJSON
      *
@@ -742,6 +1091,38 @@ public class GreatCircle {
 
     }
 
+    public void createGeojsonEllipseTest(double lon, double lat, double a, double b, double rot, int numPoints) {
+        GreatCircle gc = new GreatCircle();
+
+
+        JSONObject featureCollection = new JSONObject();
+        featureCollection.put("type", "FeatureCollection");
+
+        JSONArray features = new JSONArray();
+
+        JSONObject feature = new JSONObject();
+        feature.put("type", "Feature");
+
+        // Add properties (At least one is required)
+        JSONObject properties = gc.generateProperties(1, lon, lat, a);
+        feature.put("properties", properties);
+
+        // Get the coordinates
+        JSONArray coords = gc.createEllipse(lon, lat, a, b, rot, numPoints, false);
+
+        JSONObject geom = new JSONObject();
+        geom.put("type", "MultiPolygon");
+        geom.put("coordinates", coords);
+
+        feature.put("geometry", geom);
+
+        features.put(feature);
+        featureCollection.put("features", features);
+
+        System.out.println(featureCollection.toString());
+        
+    }    
+    
     public void createGeojsonTest(double lon, double lat, double size, int numPoints) {
         GreatCircle gc = new GreatCircle();
 
@@ -782,32 +1163,8 @@ public class GreatCircle {
         //JSONArray json = gc.createCircle(-1, 30, 200.0, 20, true);
         int i = 0;
         System.out.println(++i);
-        gc.createGeojsonTest(-1.0,30.0,300.0,20);
+        gc.createGeojsonEllipseTest(10,0,10,20,45,200);
 
-        System.out.println(++i);
-        gc.createGeojsonTest(0.0,40.0,300.0,20);
-        
-        System.out.println(++i);
-        gc.createGeojsonTest(1.0,40.0,300.0,20);
-
-        System.out.println(++i);
-        gc.createGeojsonTest(179.0,-89.0,300.0,20);
-
-        System.out.println(++i);
-        gc.createGeojsonTest(179.0,0.0,300.0,20);
-
-        System.out.println(++i);
-        gc.createGeojsonTest(179.0,89.0,300.0,20);
-
-        System.out.println(++i);
-        gc.createGeojsonTest(-179.0,-89.0,300.0,20);
-
-        System.out.println(++i);
-        gc.createGeojsonTest(-179.0,0.0,300.0,20);
-
-        System.out.println(++i);
-        gc.createGeojsonTest(-179.0,89.0,300.0,20);
-        
 
         
 //        JSONObject featureCollection = new JSONObject();

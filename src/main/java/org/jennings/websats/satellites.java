@@ -46,6 +46,7 @@ public class satellites extends HttpServlet {
             String strTime = "";
             String strGeomType = "";
             String strDel = ",";
+            String strNtimes = "";
 
             // Populate the parameters ignoring case
             Enumeration paramNames = request.getParameterNames();
@@ -61,6 +62,8 @@ public class satellites extends HttpServlet {
                     strNames = request.getParameter(paramName);
                 } else if (paramName.equalsIgnoreCase("nums")) {
                     strNums = request.getParameter(paramName);
+                } else if (paramName.equalsIgnoreCase("n")) {
+                    strNtimes = request.getParameter(paramName);
                 }
             }
 
@@ -94,6 +97,22 @@ public class satellites extends HttpServlet {
                     t = t * 1000;
                 }
             }
+            
+            int ntimes = 1;
+            if (!strNtimes.equalsIgnoreCase("")) {
+                try {
+                    ntimes = Integer.parseInt(strNtimes);
+                    if (ntimes < 1) {
+                        ntimes = 1;
+                    } else if (ntimes > 100) {
+                        ntimes = 100;
+                    }
+                    
+                } catch (Exception e) {
+                    throw new Exception("n must be an integer");
+                }
+            }
+            
 
             HashSet<String> sats = new HashSet<>();
 
@@ -111,79 +130,92 @@ public class satellites extends HttpServlet {
 
             JSONArray results = new JSONArray();
             String strLines = "";
+            
+            long st = System.currentTimeMillis();
+            
+            long et = st;
+            
+            int n = 0;
+            
+            while (n < ntimes) {                
+                long t1 = t + (et - st);
+                for (String sat : sats) {
+                    Sat pos = satDB.getSatNum(sat).getPos(t1);
+                    JSONObject result = new JSONObject();
+                    JSONArray line = new JSONArray();
+                    JSONArray lines = new JSONArray();
+
+                    if (fmt.equalsIgnoreCase("geojson")) {
+
+                        result.put("type", "Feature");
+
+                        JSONObject properties = new JSONObject();
+                        properties.put("name", pos.getName());
+                        properties.put("num", pos.getNum());
+                        properties.put("timestamp", pos.GetEpoch().epochTimeMillis());
+                        properties.put("dtg", pos.GetEpoch());
+                        properties.put("lon", pos.GetLon());
+                        properties.put("lat", pos.GetParametricLat());
+                        properties.put("alt", pos.getAltitude());
+                        result.put("properties", properties);
+
+                        JSONObject geom = new JSONObject();
+                        geom.put("type", "Point");
+                        JSONArray coord = new JSONArray("[" + pos.GetLon() + ", " + pos.GetParametricLat() + "]");
+                        geom.put("coordinates", coord);
+                        result.put("geometry", geom);
+
+                        results.put(result);
+                    } else if (fmt.equalsIgnoreCase("json") || fmt.equalsIgnoreCase("txt")) {
+
+                        JSONObject geom2 = new JSONObject();
+                        if (geomType.equalsIgnoreCase("geojson")) {
+                            JSONArray coord = new JSONArray("[" + pos.GetLon() + ", " + pos.GetParametricLat() + "]");
+                            geom2.put("coordinates", coord);
+                        } else {
+
+                            geom2.put("x", pos.GetLon());
+                            geom2.put("y", pos.GetParametricLat());
+
+                        }
+
+                        if (fmt.equalsIgnoreCase("json")) {
+                            result.put("name", pos.getName());
+                            result.put("num", sat);
+                            result.put("timestamp", pos.GetEpoch().epochTimeMillis());
+                            result.put("dtg", pos.GetEpoch());
+                            result.put("lon", pos.GetLon());
+                            result.put("lat", pos.GetParametricLat());
+                            result.put("alt", pos.getAltitude());
+                            if (!geomType.equalsIgnoreCase("")) {
+                                result.put("geometry", geom2);
+                            } 
+
+                            results.put(result);
+
+                        } else if (geomType.equalsIgnoreCase("")) {
+                            // Default is no geom at all just lon,lat
+                            strLines += pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
+                                    + strDel + pos.GetEpoch() + strDel + pos.GetLon() + strDel + pos.GetParametricLat()
+                                    + strDel + pos.getAltitude() + "\n";
+                        } else {
+                            // Default to delimited the geom is inside quotes and replace quotes with \"
+                            strLines += pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
+                                    + "\"" + geom2.toString().replace("\"", "\\\"") + "\"" + "\n";
+
+                        }
+
+                    } else {
+                        throw new Exception("Invalid format. Supported formats: txt,json,geojson");
+                    }
+
+                }                
+                n += 1;
+                st = System.currentTimeMillis();
+            }
 
             // Process the list of satellites
-            for (String sat : sats) {
-                Sat pos = satDB.getSatNum(sat).getPos(t);
-                JSONObject result = new JSONObject();
-                JSONArray line = new JSONArray();
-                JSONArray lines = new JSONArray();
 
-                if (fmt.equalsIgnoreCase("geojson")) {
-
-                    result.put("type", "Feature");
-
-                    JSONObject properties = new JSONObject();
-                    properties.put("name", pos.getName());
-                    properties.put("num", pos.getNum());
-                    properties.put("timestamp", pos.GetEpoch().epochTimeSecs());
-                    properties.put("dtg", pos.GetEpoch());
-                    properties.put("lon", pos.GetLon());
-                    properties.put("lat", pos.GetParametricLat());
-                    properties.put("alt", pos.getAltitude());
-                    result.put("properties", properties);
-
-                    JSONObject geom = new JSONObject();
-                    geom.put("type", "Point");
-                    JSONArray coord = new JSONArray("[" + pos.GetLon() + ", " + pos.GetParametricLat() + "]");
-                    geom.put("coordinates", coord);
-                    result.put("geometry", geom);
-
-                    results.put(result);
-                } else if (fmt.equalsIgnoreCase("json") || fmt.equalsIgnoreCase("txt")) {
-
-                    JSONObject geom2 = new JSONObject();
-                    if (geomType.equalsIgnoreCase("geojson")) {
-                        JSONArray coord = new JSONArray("[" + pos.GetLon() + ", " + pos.GetParametricLat() + "]");
-                        geom2.put("coordinates", coord);
-                    } else {
-
-                        geom2.put("x", pos.GetLon());
-                        geom2.put("y", pos.GetParametricLat());
-
-                    }
-
-                    if (fmt.equalsIgnoreCase("json")) {
-                        result.put("name", pos.getName());
-                        result.put("num", sat);
-                        result.put("timestamp", pos.GetEpoch().epochTimeSecs());
-                        result.put("dtg", pos.GetEpoch());
-                        result.put("lon", pos.GetLon());
-                        result.put("lat", pos.GetParametricLat());
-                        result.put("alt", pos.getAltitude());
-                        if (!geomType.equalsIgnoreCase("")) {
-                            result.put("geometry", geom2);
-                        } 
-                        
-                        results.put(result);
-
-                    } else if (geomType.equalsIgnoreCase("")) {
-                        // Default is no geom at all just lon,lat
-                        strLines += pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeSecs()
-                                + strDel + pos.GetEpoch() + strDel + pos.GetLon() + strDel + pos.GetParametricLat()
-                                + strDel + pos.getAltitude() + "\n";
-                    } else {
-                        // Default to delimited the geom is inside quotes and replace quotes with \"
-                        strLines += pos.getName() + strDel + pos.getNum() + strDel
-                                + "\"" + geom2.toString().replace("\"", "\\\"") + "\"" + "\n";
-
-                    }
-
-                } else {
-                    throw new Exception("Invalid format. Supported formats: txt,json,geojson");
-                }
-
-            }
 
             JSONObject resp = new JSONObject();
 

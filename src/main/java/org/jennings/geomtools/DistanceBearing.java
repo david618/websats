@@ -21,7 +21,7 @@ public class DistanceBearing {
             throw new NumberFormatException("distance must be less than half radius of Earth");
         }
         
-        if (bearing > 180.0) {
+        if (bearing > 360.0) {
             throw new NumberFormatException("bearing must be less than 180.0");
         }
 
