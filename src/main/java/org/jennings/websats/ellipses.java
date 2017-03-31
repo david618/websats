@@ -126,8 +126,8 @@ public class ellipses extends HttpServlet {
                 if (num < 1) {
                     num = 1;
                 }
-                if (num > 500) {
-                    num = 500;
+                if (num > 5000) {
+                    num = 5000;
                 }
             }
 
@@ -145,8 +145,8 @@ public class ellipses extends HttpServlet {
 
                 i += 1;
 
-                double a = rnd.nextDouble() * 1 + 0.01;  // a from 0.1 to 1.1km
-                double b = rnd.nextDouble() * 1 + 0.01;  // b from 0.1 to 11.1km
+                double a = rnd.nextDouble() * 1 + 0.01;  // a from 0.01 to 1.1km
+                double b = rnd.nextDouble() * 1 + 0.01;  // b from 0.01 to 1.1km
                 double r = rnd.nextDouble() * 360; // Rotation 0 to 360 
 
                 GeographicCoordinate llcorner = landGrids.get(rnd.nextInt(numLandGrids));
@@ -166,7 +166,7 @@ public class ellipses extends HttpServlet {
 
                     // Problem with large areas crossing -180 and 180 for now I'll set to small number
                     GreatCircle gc = new GreatCircle();
-                    polys = gc.createEllipse(lon, lat, a, b, r, numPoints, isClockwise);
+                    polys = gc.createEllipse3(lon, lat, a, b, r, numPoints, isClockwise);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -179,7 +179,7 @@ public class ellipses extends HttpServlet {
                     JSONObject properties = new JSONObject();
 
                     properties.put("a", a);
-                    properties.put("b", a);
+                    properties.put("b", b);
                     properties.put("rot", r);
                     properties.put("num", i);
                     properties.put("clon", lon);
@@ -204,7 +204,7 @@ public class ellipses extends HttpServlet {
 
                     if (format.equalsIgnoreCase("json")) {
                         result.put("a", a);
-                        result.put("b", a);
+                        result.put("b", b);
                         result.put("rot", r);
                         result.put("num", i);
                         result.put("clon", lon);
