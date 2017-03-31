@@ -19,6 +19,8 @@ import org.json.JSONObject;
  */
 public class satfootprints extends HttpServlet {
 
+    private static Sats satDB = null;
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -32,7 +34,9 @@ public class satfootprints extends HttpServlet {
             throws ServletException, IOException {
 
         try {
-            Sats satDB = new Sats();
+            if (satDB == null) {
+                satDB = new Sats();
+            }
 
             String strFormat = "";
             String strGeomType = "";

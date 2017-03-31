@@ -25,6 +25,8 @@ import org.json.JSONObject;
 @WebServlet(name = "satellites", urlPatterns = {"/satellites"})
 public class satellites extends HttpServlet {
 
+    private static Sats satDB = null;
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -38,7 +40,10 @@ public class satellites extends HttpServlet {
             throws ServletException, IOException {
 
         try {
-            Sats satDB = new Sats();
+            if (satDB == null) {
+                satDB = new Sats();
+            }
+            
 
             String strFormat = "";
             String strNums = "";

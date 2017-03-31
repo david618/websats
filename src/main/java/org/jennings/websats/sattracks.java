@@ -24,7 +24,8 @@ import org.json.JSONObject;
  */
 public class sattracks extends HttpServlet {
 
-
+    private static Sats satDB = null;
+    
     private GeographicCoordinate findCrossing(double x1, double y1, double x2, double y2) {
         GeographicCoordinate pt;
 
@@ -49,7 +50,9 @@ public class sattracks extends HttpServlet {
             throws ServletException, IOException {
 
         try {
-            Sats satDB = new Sats();
+            if (satDB == null) {
+                satDB = new Sats();
+            }
 
             String strFormat = "txt";
             String strGeomType = "";

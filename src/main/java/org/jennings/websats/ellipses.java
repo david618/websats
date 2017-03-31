@@ -1,17 +1,20 @@
 package org.jennings.websats;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.Random;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.jennings.geomtools.GeographicCoordinate;
 import org.jennings.geomtools.GreatCircle;
-import org.jennings.mvnsat.Sat;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -22,6 +25,36 @@ import org.json.JSONObject;
 @WebServlet(name = "ellipses", urlPatterns = {"/ellipses"})
 public class ellipses extends HttpServlet {
 
+    private static ArrayList<GeographicCoordinate> landGrids = null;
+    
+
+    private String loadLandGrids() {
+        landGrids = new ArrayList<>();
+
+        String message = "";
+
+        try {
+            InputStream pis = getClass().getResourceAsStream("/landgrids.csv");
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(pis, "UTF-8"));
+            br.readLine();  // discard first line header
+            String strLine = "";
+            while ((strLine = br.readLine()) != null) {
+                String[] parts = strLine.split(",");
+                Double lat = Double.parseDouble(parts[0]);
+                Double lon = Double.parseDouble(parts[1]);
+                GeographicCoordinate coord = new GeographicCoordinate(lon, lat);
+                landGrids.add(coord);
+            }
+
+        } catch (Exception e) {
+            message = "ERROR" + e.getClass() + ">>" + e.getMessage();
+            System.out.println(message);
+        }
+        return message;
+    }    
+    
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -34,7 +67,9 @@ public class ellipses extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            Sats satDB = new Sats();
+            if (landGrids == null) {
+                loadLandGrids();
+            }
 
             String strFormat = "";
             String strGeomType = "";
@@ -103,21 +138,26 @@ public class ellipses extends HttpServlet {
 
             Random rnd = new Random(System.currentTimeMillis());
 
+            int numLandGrids = landGrids.size();
+            
             // Process the list of satellites
             while (i < num) {
 
                 i += 1;
 
-                double a = rnd.nextDouble() * 1 + 0.01;  // a from 0.1 to 10.1
-                double b = rnd.nextDouble() * 1 + 0.01;  // b from 0.1 to 10.1
+                double a = rnd.nextDouble() * 1 + 0.01;  // a from 0.1 to 1.1km
+                double b = rnd.nextDouble() * 1 + 0.01;  // b from 0.1 to 11.1km
                 double r = rnd.nextDouble() * 360; // Rotation 0 to 360 
 
-                double maxLon = 180.0;
-                double minLon = -180.0;
+                GeographicCoordinate llcorner = landGrids.get(rnd.nextInt(numLandGrids));
+                
+                double minLon = llcorner.getLon();
+                double maxLon = minLon + 1;                
                 double lon = minLon + (maxLon - minLon) * rnd.nextDouble();
 
-                double maxLat = 80.0;
-                double minLat = -80.0;
+                double minLat = llcorner.getLat();
+                double maxLat = minLat + 1;
+                
                 double lat = minLat + (maxLat - minLat) * rnd.nextDouble();
 
                 JSONObject result = new JSONObject();
@@ -220,7 +260,7 @@ public class ellipses extends HttpServlet {
                 out.println("<title>Error Creating Satellite Array</title>");
                 out.println("</head>");
                 out.println("<body>");
-                out.println("<h1>Could build satellite array.</h1>");
+                out.println("<h1>Could build ellipses.</h1>");
 
                 out.println("<h2>Unexpected Error: " + e.getMessage() + "</h2>");
                 out.println("</body>");
