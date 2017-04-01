@@ -357,19 +357,29 @@ public class GreatCircle {
         }
 
         if (a == null) {
-            // default to 50 meters or 0.050 km
-            a = 0.050;
+            // default to 500 meters or 0.50 km
+            a = 0.50;
         }
 
         if (b == null) {
             // default to 50 meters or 0.050 km
-            a = 0.050;
+            b = 0.050;
         }
 
         if (rotationDeg == null) {
             rotationDeg = 0.0;
         }
 
+        if (a < b) {
+            // Switch a and b
+            // Semimajor axis should be the larger of the two
+            double t = a;
+            a = b;
+            b = t;
+        }
+        
+        double c = Math.sqrt(a*a-b*b);
+                
         // If this was a circle then even distribuation would be d
         double d = 360.0 / (numPoints - 1);
 
@@ -409,14 +419,25 @@ public class GreatCircle {
             }
 
             // Scale d based on distance
-            double scale = ((a / b - b / a) / (b - a)) * (distb.getDistance() - a) + b / a;
-            if (scale > 1.0) {
-                scale = 1.0;
+//            double scale = ((a / b - b / a) / (b - a)) * (distb.getDistance() - a) + b / a;
+//            if (scale > 1.0) {
+//                scale = 1.0;
+//            }
+//            double scale = 1.0;
+//            if (distb.getDistance() > c) {
+//                scale = 1/10;
+//            }
+            
+//            if (debug) {
+//                System.out.println(scale + "," + distb.getDistance() + "," + distb.getBearing() + "," + v + "," + nc.getLon() + "," + nc.getLat());
+//            }
+            // Densifying the points around 0/360 and 180; just 10 degrees out really improved the polygons
+            if (v > 350 || v < 10 || (v > 170 && v < 190)) {
+                v = v - d*b/a;
+            } else {
+                v = v - d;
             }
-            if (debug) {
-                System.out.println(scale + "," + distb.getDistance() + "," + distb.getBearing() + "," + v + "," + nc.getLon() + "," + nc.getLat());
-            }
-            v = v - d * scale;
+            
 
         }
 
@@ -1998,30 +2019,30 @@ public class GreatCircle {
 
         GreatCircle gc = new GreatCircle();
 
-        gc.createGeojsonEllipseTest(-69.52,9.05,0.0770848763865437, 0.7769107886374993, 65.84557553960197, 100);
+      //  gc.createGeojsonEllipseTest(-69.52,9.05,7,0.007, 0, 100);
         
-        //JSONArray json = gc.createCircle(-1, 30, 200.0, 20, true);
-//        int i = 0;
-//        //System.out.println(++i);
-//        Random rnd = new Random();
-//        while (i < 1000) {
-//
-//            double a = rnd.nextDouble() * 1 + 0.01;  // a from 0.01 to 1.1km
-//            double b = rnd.nextDouble() * 1 + 0.01;  // b from 0.01 to 1.1km
-//            double r = rnd.nextDouble() * 360; // Rotation 0 to 360             
-//
-//            double minLon = -180;
-//            double maxLon = 180;
-//            double lon = minLon + (maxLon - minLon) * rnd.nextDouble();
-//
-//            double minLat = -80;
-//            double maxLat = 80;
-//
-//            double lat = minLat + (maxLat - minLat) * rnd.nextDouble();
-//
-//            gc.createGeojsonEllipseTest(lon, lat, a, b, r, 200);
-//            i++;
-//        }
+        JSONArray json = gc.createCircle(-1, 30, 200.0, 20, true);
+        int i = 0;
+        //System.out.println(++i);
+        Random rnd = new Random();
+        while (i < 1000) {
+
+            double a = rnd.nextDouble() * 1 + 0.01;  // a from 0.01 to 1.1km
+            double b = rnd.nextDouble() * 1 + 0.01;  // b from 0.01 to 1.1km
+            double r = rnd.nextDouble() * 360; // Rotation 0 to 360             
+
+            double minLon = -180;
+            double maxLon = 180;
+            double lon = minLon + (maxLon - minLon) * rnd.nextDouble();
+
+            double minLat = -80;
+            double maxLat = 80;
+
+            double lat = minLat + (maxLat - minLat) * rnd.nextDouble();
+
+            gc.createGeojsonEllipseTest(lon, lat, a, b, r, 200);
+            i++;
+        }
 
 //        JSONObject featureCollection = new JSONObject();
 //        featureCollection.put("type", "FeatureCollection");
