@@ -238,7 +238,13 @@ public class satellites extends HttpServlet {
             } else if (fmt.equalsIgnoreCase("json")) {
                 response.setContentType("application/json;charset=UTF-8");
 
-                out.println(results.toString());
+                if (results.length() > 1) {
+                    out.println(results.toString());
+                } else {
+                    out.println(results.get(0).toString());
+                }
+                
+                
 
             } else {
                 // Pipe Delimited
