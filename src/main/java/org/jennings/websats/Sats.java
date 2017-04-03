@@ -6,6 +6,7 @@
 package org.jennings.websats;
 
 import java.io.BufferedReader;
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -73,7 +74,7 @@ public class Sats {
     public String getSatTLE(String num) {
         return satTLEs.get(num);
     }
-    
+
     public Sat getSatNum(String num) {
         return satNums.get(num);
     }
@@ -99,14 +100,14 @@ public class Sats {
 
             String nm = name.trim();
             if (nm.endsWith("*")) {
-                String prefix = nm.substring(0, nm.length()-1).toUpperCase();
+                String prefix = nm.substring(0, nm.length() - 1).toUpperCase();
                 if (prefix.equalsIgnoreCase("")) {
                     // One of the values was * return all 
                     return getAllNums();
                 } else {
-                    for (String satNm: getAllNames()) {
+                    for (String satNm : getAllNames()) {
                         if (satNm.toUpperCase().startsWith(prefix)) {
-                            Sat s = satNames.get(satNm);                            
+                            Sat s = satNames.get(satNm);
                             sats.add(s.getNum());
                         }
                     }
@@ -167,8 +168,7 @@ public class Sats {
         });
         return sats;
     }
-    
-    
+
     public HashSet<String> getAllNums() {
         HashSet<String> sats = new HashSet<>();
 
@@ -180,30 +180,50 @@ public class Sats {
 
     }
 
+    private void createSimulationFile(int duration, int step) {
+        try {
+            FileWriter fw = new FileWriter("satellites.txt");
+
+            long st = System.currentTimeMillis();
+
+            int durationSecs = duration;
+            int stepSecs = step;
+            HashSet<String> sats = new HashSet<>();
+            sats = getAllNums();
+            
+            String strDel = ",";
+
+            long t = st;
+            while (t < (st + durationSecs * 1000)) {
+                System.out.println(t);
+                t += stepSecs * 1000;
+                for (String sat : sats) {
+                    Sat pos = getSatNum(sat).getPos(t);
+                    String line = pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
+                            + strDel + pos.GetEpoch() + strDel + pos.GetLon() + strDel + pos.GetParametricLat()
+                            + strDel + pos.getAltitude() + "\n";
+                    fw.write(line);
+                }
+            }
+
+            fw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args) {
-//        Sats t = new Sats();
-//
-//        satNums.keySet().stream().forEach((s) -> {
-//            System.out.println(s);
-//        });
+        Sats t = new Sats();
 
-    
+        if (args.length != 2) {
+            System.err.print("Usage: Sats <durationSecs> <stepSecs>\n");
+        } else {
+            
+            
+                t.createSimulationFile(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
 
-        String name = "*";
-        
-        System.out.println(name.substring(0, name.length()-1));
-
-////        HashSet<String> s = new HashSet<>() ;
-////        s.add("David");
-////        
-////        s.add("David");
-////        s.add("Colleen");
-////        
-////       
-//        
-//        for (String a: s) {
-//            System.out.println(a);
-//        }
+        }
+                
     }
 
 }
