@@ -6,181 +6,22 @@
     </head>
     <body>
         <h1>Websats</h1>
-        <p>Websats returns satellite locations. It was created to produce test data and is not intended for production use.</p>
-       
-
-        <h2><b>/satellites</b></h2>
-        <p>Returns point geometries</p>
+        <p>Websats returns satellite information. </p>
         
-        <p><i>Parameters</i></p>
-        <ul>
-            <li> f : Format (json, geojson; unset or any other value returns txt</li>
-            <li> names: Comma separated list of Satellite Names. You can end with * to get Satellites staring with prefix (e.g. GPS*). </li>
-            <li> nums: Comma separated list of Satellite Nums. If Nums is specified Names are ignored. </li>
-            <li> t: Epoch Time to return </li>
-        </ul>
-
-
-        <p><i>Fields in Order Returned</i> </p>
-        <ul>
-            <li>name: Satellite Name</li>
-            <li>num: Satellite Number</li>
-            <li>timestamp: Number of seconds from Epoch</li>
-            <li>dtg: Date and time of the location.  DD-MMM-YYYY hh:mm:ss.ss</li>                       
-            <li>lon: Longitude of Satellite</li>
-            <li>lat: Latitude of Satellite</li>
-            <li>alt: Altitude of Satellite</li>
-        </ul>
-
-        <p><i>Examples</i> </p>
-
-        <ul>
-            <li><b>Pipe Delimited</b>
-                <ul>
-                    <li>Get all satellites: <a href="satellites">/satellites</a></li>
-                    <li>Get satellites by number: <a href="satellites?nums=29709,41895">/satellites?nums=29709,41895</a></li>
-                </ul>
-            </li>
-            <li><b>JSON</b>
-                <ul>
-                    <li>Get all satellites: <a href="satellites?f=json">/satellites?f=json</a></li>
-                    <li>Get satellites by number: <a href="satellites?f=json&nums=29709,41895">/satellites?f=json&nums=29709,41895</a></li>
-                </ul>
-            </li>
-            <li><b>GEOJSON</b>
-                <ul>
-                    <li>Get all satellites: <a href="satellites?f=geojson">/satellites?f=geojson</a></li>
-                    <li>Get satellites by name: <a href="satellites?f=geojson&names=GPS BIIR-3  (PRN 11),GPS BIIR-6  (PRN 14)">satellites?f=geojson&names=GPS BIIR-3  (PRN 11),GPS BIIR-6  (PRN 14)</a></li>
-                </ul>
-            </li>
-        </ul>        
-
-        <h2><b>/sattracks</b></h2>
-        <p>Returns line geometries</p>
+        <p><b>It was created to produce test data and is not intended for production use.</b></p>
         
-        <p><i>Parameters</i></p>
-        <ul>
-            <li> f : Format (txt, json, geojson</li>
-            <li> names: Comma separated list of Satellite Names. You can end with * to get Satellites staring with prefix (e.g. GPS*). </li>
-            <li> nums: Comma separated list of Satellite Nums. If Nums is specified Names are ignored. </li>
-            <li> st: Epoch Time to start default to current time in seconds or milliseconds </li>
-            <li> td: Length of time for the line returned in seconds. </li>
-            <li> ts: Time step seconds. </li>
-        </ul>
-
-
-        <p><i>Fields in Order Returned</i> </p>
-        <ul>
-            <li>name: Satellite Name</li>
-            <li>num: Satellite Number</li>
-            <li>geometry: Line</li>
-        </ul>
-
-        <p><i>Examples</i> </p>
-
-        <ul>
-            <li><b>Pipe Delimited</b>
-                <ul>
-                    <li>Get all satellites: <a href="sattracks">/sattracks</a></li>
-                    <li>Get satellites by number: <a href="sattracks?nums=29709,41895">/sattracks?nums=29709,41895</a></li>
-                </ul>
-            </li>
-            <li><b>JSON</b>
-                <ul>
-                    <li>Get all satellites: <a href="sattracks?f=json">/sattracks?f=json</a></li>
-                    <li>Get satellites by number: <a href="sattracks?f=json&nums=29709,41895">/sattracks?f=pjson&nums=29709,41895</a></li>
-                    <li>Get satellites by number for 300 seconds with 30 second samples: <a href="sattracks?f=json&nums=29709,41895&td=300&ts=30">/sattracks?f=pjson&nums=29709,41895&td=300&ts=30</a></li>
-                </ul>
-            </li>
-            <li><b>GEOJSON</b>
-                <ul>
-                    <li>Get all satellites: <a href="sattracks?f=geojson">/satellites?f=geojson</a></li>
-                    <li>Get satellites by name: <a href="sattracks?f=geojson&names=GPS BIIR-3  (PRN 11),GPS BIIR-6  (PRN 14)">/sattracks?f=geojson&names=GPS BIIR-3  (PRN 11),GPS BIIR-6  (PRN 14)</a></li>
-                    <li>Get satellites by number: <a href="sattracks?f=geojson&nums=29709,41895">/sattracks?f=geojson&nums=29709,41895</a></li>
-                </ul>
-            </li>
-        </ul>        
-
-        <h2><b>/satfootprints</b></h2>
-        <p>Returns satellite footprints as polygon. Foot prints crossing 180 lon are excluded for now. </p>
-        <p><i>Parameters</i></p>
-        <ul>
-            <li> f : Format (txt, json, geojson</li>
-            <li> names: Comma separated list of Satellite Names. You can end with * to get Satellites staring with prefix (e.g. GPS*). </li>
-            <li> nums: Comma separated list of Satellite Nums. If Nums is specified Names are ignored. </li>
-        </ul>
-
-
-        <p><i>Fields in Order Returned</i> </p>
-        <ul>
-            <li>name: Satellite Name</li>
-            <li>num: Satellite Number</li>
-            <li>geometry: polygon</li>
-            <li>npts: Number of points in the polygon (20 - 500) defaults to 50.</li>            
-            <li> t: Epoch Time to return </li>
-        </ul>
-
-        <p><i>Examples</i> </p>
-
-        <ul>
-            <li><b>Pipe Delimited</b>
-                <ul>
-                    <li>Get all satellites: <a href="satfootprints">/satfootprints</a></li>
-                    <li>Get satellites by number: <a href="satfootprints?nums=29709,41895">/satfootprints?nums=29709,41895</a></li>
-                </ul>
-            </li>
-            <li><b>JSON</b>
-                <ul>
-                    <li>Get all satellites: <a href="satfootprints?f=json">/satfootprints?f=json</a></li>
-                    <li>Get satellites by number: <a href="satfootprints?f=json&nums=29709,41895">/satfootprints?f=pjson&nums=29709,41895</a></li>
-                    <li>Get satellites by number using 100 points: <a href="satfootprints?f=json&nums=29709,41895&npts=100">/satfootprints?f=json&nums=29709,41895&npts=100</a></li>
-                </ul>
-            </li>
-            <li><b>GEOJSON</b>
-                <ul>
-                    <li>Get all satellites: <a href="satfootprints?f=geojson">/satfootprints?f=geojson</a></li>
-                    <li>Get satellites by name: <a href="satfootprints?f=geojson&names=ISS (ZARYA)">/satfootprints?f=geojson&names=ISS (ZARYA)</a></li>
-                    <li>Get satellites by number: <a href="satfootprints?f=geojson&nums=29709,41895">/satfootprints?f=geojson&nums=29709,41895</a></li>
-                </ul>
-            </li>
-        </ul>     
-
-        <h2><b>/tles</b></h2>
-        <p>Returns point geometries</p>
+    <ul>
+        <li><a href="satellites.html">/satellites</a> : returns satellite positions as points </li>
+        <li><a href="sattracks.html">/sattracks</a> : returns satellite tracks as lines </li>
+        <li><a href="satfootprints.html">/satfootprints</a> : returns satellite footprints as polygons </li>
+        <li><a href="tles.html">/tles</a> : returns satellite two line elements sets </li>
+    </ul>
         
-        <p><i>Parameters</i></p>
-        <ul>
-            <li> f : Format (json, txt; unset or any other value returns txt</li>
-            <li> names: Comma separated list of Satellite Names. You can end with * to get Satellites staring with prefix (e.g. GPS*). </li>
-            <li> nums: Comma separated list of Satellite Nums. If Nums is specified Names are ignored. </li>
-        </ul>
-
-
-        <p><i>Lines Returned for each Satellite</i> </p>
-        <ul>
-            <li>TLE Header</li>
-            <li>TLE Line 1</li>
-            <li>TLE Line 2</li>
-        </ul>
-
-        <p><i>Examples</i> </p>
-
-        <ul>
-            <li><b>Text TLE</b>
-                <ul>
-                    <li>TLE for all satellites: <a href="tles">/tles</a></li>
-                    <li>TLE for satellites by name: <a href="tles?nums=29709,41895">/tles?nums=29709,41895</a></li>
-                </ul>
-            </li>
-            <li><b>JSON</b>
-                <ul>
-                    <li>TLE all satellites: <a href="tles?f=json">/tles?f=json</a></li>
-                    <li>TLE for satellites by number: <a href="tles?f=json&names=GPS*">/tles?f=json&names=GPS*</a></li>
-                </ul>
-            </li>
-        </ul>        
+        <p> Unrelated to satellites </p>
         
-        
+        <ul>
+            <li><a href="ellipses.html">/ellipses</a> : returns random ellipses </li>
+        </ul>
         
     </body>
 </html>

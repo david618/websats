@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Satellites</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+
+        <h2><b>/satellites</b></h2>
+        <p>Returns point geometries</p>
+        
+        <p><i>Parameters</i></p>
+        <ul>
+            <li> f : Format (json, geojson, comma delimited (default)</li>
+            <li> names: Comma separated list of Satellite Names. You can end with * to get Satellites staring with prefix (e.g. GPS*). </li>
+            <li> nums: Comma separated list of Satellite Nums. If Nums is specified Names are ignored. </li>
+            <li> t: Epoch Time to return </li>
+            <li> n: Number of samples for each satellite</li>
+        </ul>
+
+
+        <p><i>Fields in Order Returned</i> </p>
+        <ul>
+            <li>name: Satellite Name</li>
+            <li>num: Satellite Number</li>
+            <li>timestamp: Number of seconds from Epoch</li>
+            <li>dtg: Date and time of the location.  DD-MMM-YYYY hh:mm:ss.ss</li>                       
+            <li>lon: Longitude of Satellite</li>
+            <li>lat: Latitude of Satellite</li>
+            <li>alt: Altitude of Satellite</li>
+        </ul>
+
+        <p><i>Examples</i> </p>
+
+        <ul>
+            <li><b>Delimited</b>
+                <ul>
+                    <li>Get all satellites: <a href="satellites">/satellites</a></li>
+                    <li>Get satellites by number: <a href="satellites?nums=29709,41895">/satellites?nums=29709,41895</a></li>
+                </ul>
+            </li>
+            <li><b>JSON</b>
+                <ul>
+                    <li>Get all satellites: <a href="satellites?f=json">/satellites?f=json</a></li>
+                    <li>Get satellites by number: <a href="satellites?f=json&nums=29709,41895">/satellites?f=json&nums=29709,41895</a></li>
+                </ul>
+            </li>
+            <li><b>GEOJSON</b>
+                <ul>
+                    <li>Get all satellites: <a href="satellites?f=geojson">/satellites?f=geojson</a></li>
+                    <li>Get satellites by name: <a href="satellites?f=geojson&names=GPS BIIR-3  (PRN 11),GPS BIIR-6  (PRN 14)">satellites?f=geojson&names=GPS BIIR-3  (PRN 11),GPS BIIR-6  (PRN 14)</a></li>
+                </ul>
+            </li>
+        </ul>        
+        
+    </body>
+</html>

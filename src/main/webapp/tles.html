@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Satellite Two Line Elements</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+        <h2><b>/tles</b></h2>
+        <p>Returns point geometries</p>
+        
+        <p><i>Parameters</i></p>
+        <ul>
+            <li> f : Format (json, txt; unset or any other value returns txt</li>
+            <li> names: Comma separated list of Satellite Names. You can end with * to get Satellites staring with prefix (e.g. GPS*). </li>
+            <li> nums: Comma separated list of Satellite Nums. If Nums is specified Names are ignored. </li>
+        </ul>
+
+
+        <p><i>Lines Returned for each Satellite</i> </p>
+        <ul>
+            <li>TLE Header</li>
+            <li>TLE Line 1</li>
+            <li>TLE Line 2</li>
+        </ul>
+
+        <p><i>Examples</i> </p>
+
+        <ul>
+            <li><b>Text TLE</b>
+                <ul>
+                    <li>TLE for all satellites: <a href="tles">/tles</a></li>
+                    <li>TLE for satellites by name: <a href="tles?nums=29709,41895">/tles?nums=29709,41895</a></li>
+                </ul>
+            </li>
+            <li><b>JSON</b>
+                <ul>
+                    <li>TLE all satellites: <a href="tles?f=json">/tles?f=json</a></li>
+                    <li>TLE for satellites by number: <a href="tles?f=json&names=GPS*">/tles?f=json&names=GPS*</a></li>
+                </ul>
+            </li>
+        </ul>        
+        
+        
+        
+    </body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Satellite Footprints</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+
+        <h2><b>/satfootprints</b></h2>
+        <p>Returns satellite footprints as polygon. Foot prints crossing 180 lon are excluded for now. </p>
+        <p><i>Parameters</i></p>
+        <ul>
+            <li> f : Format (json, geojson, comma delimited (default)</li>
+            <li> names: Comma separated list of Satellite Names. You can end with * to get Satellites staring with prefix (e.g. GPS*). </li>
+            <li> nums: Comma separated list of Satellite Nums. If Nums is specified Names are ignored. </li>
+        </ul>
+
+
+        <p><i>Fields in Order Returned</i> </p>
+        <ul>
+            <li>name: Satellite Name</li>
+            <li>num: Satellite Number</li>
+            <li>geometry: polygon</li>
+            <li>npts: Number of points in the polygon (20 - 500) defaults to 50.</li>            
+            <li> t: Epoch Time to return </li>
+        </ul>
+
+        <p><i>Examples</i> </p>
+
+        <ul>
+            <li><b>Delimited</b>
+                <ul>
+                    <li>Get all satellites: <a href="satfootprints">/satfootprints</a></li>
+                    <li>Get satellites by number: <a href="satfootprints?nums=29709,41895">/satfootprints?nums=29709,41895</a></li>
+                </ul>
+            </li>
+            <li><b>JSON</b>
+                <ul>
+                    <li>Get all satellites: <a href="satfootprints?f=json">/satfootprints?f=json</a></li>
+                    <li>Get satellites by number: <a href="satfootprints?f=json&nums=29709,41895">/satfootprints?f=pjson&nums=29709,41895</a></li>
+                    <li>Get satellites by number using 100 points: <a href="satfootprints?f=json&nums=29709,41895&npts=100">/satfootprints?f=json&nums=29709,41895&npts=100</a></li>
+                </ul>
+            </li>
+            <li><b>GEOJSON</b>
+                <ul>
+                    <li>Get all satellites: <a href="satfootprints?f=geojson">/satfootprints?f=geojson</a></li>
+                    <li>Get satellites by name: <a href="satfootprints?f=geojson&names=ISS (ZARYA)">/satfootprints?f=geojson&names=ISS (ZARYA)</a></li>
+                    <li>Get satellites by number: <a href="satfootprints?f=geojson&nums=29709,41895">/satfootprints?f=geojson&nums=29709,41895</a></li>
+                </ul>
+            </li>
+        </ul>     
+
+        
+    </body>
+</html>

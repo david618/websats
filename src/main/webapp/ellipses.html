@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Satellites</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+
+        <h2><b>/ellipses</b></h2>
+        <p>Returns random small ellipses</p>
+        
+        <p><i>Parameters</i></p>
+        <ul>
+            <li> f : Format (json, geojson, comma delimited (default)</li>
+            <li> num: Number to return (defaults to 1)</li>
+        </ul>
+
+
+        <p><i>Fields in Order Returned</i> </p>
+        <ul>
+            <li>a:  Semi-Major Axis</li>
+            <li>b: Semi-Minor Axis</li>
+            <li>rot: Rotation from north</li>
+            <li>num: One up number</li>
+            <li>clon: Center Longitude</li>
+            <li>clon: Center Longitude</li>                       
+        </ul>
+
+        <p><i>Examples</i> </p>
+
+        <ul>
+            <li><b>Delimited</b>
+                <ul>
+                    <li>Get one ellipse <a href="ellipses">/ellipses</a></li>
+                    <li>Get 20 ellipses <a href="ellipses?num=20">/ellipses?num=20</a></li>
+                </ul>
+            </li>
+            <li><b>JSON</b>
+                <ul>
+                    <li>Get one ellipse <a href="ellipses?f=json">/ellipses?f=json</a></li>
+                    <li>Get 20 ellipses <a href="ellipses?f=json&num=20">/ellipses?f=json&num=20</a></li>
+                </ul>
+            </li>
+            <li><b>GEOJSON</b>
+                <ul>
+                    <li>Get one ellipse <a href="ellipses?f=geojson">/ellipses?f=geojson</a></li>
+                    <li>Get 20 ellipses <a href="ellipses?f=geojson&num=20">/ellipses?f=geojson&num=20</a></li>
+                </ul>
+            </li>
+        </ul>        
+        
+    </body>
+</html>
