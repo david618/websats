@@ -1,108 +1,227 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package org.jennings.websats;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import javax.websocket.EncodeException;
-import javax.websocket.OnClose;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
-import org.jennings.mvnsat.Sat;
-import org.json.JSONArray;
+import java.io.PrintWriter;
+import java.util.Enumeration;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 
 /**
  *
  * @author david
  */
-@ServerEndpoint(value="/satstream", encoders = {StreamEncoder.class}, decoders = {StreamDecoder.class})
-public class SatStream {
+@WebServlet(name = "SatStream", urlPatterns = {"/SatStream"})
+public class SatStream extends HttpServlet {
 
-    static int cnt;
-    
-    class SendSats extends TimerTask {
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
 
-        @Override
-        public void run() {
-            try {
-                long t = System.currentTimeMillis();
-                JSONArray results = new JSONArray();
+            String strFormat = "";
 
-                
-                
-                for (String sat : satDB.getAllNums()) {
-                    cnt += 1;
-                    try {
-                        Sat pos = satDB.getSatNum(sat).getPos(t);
-                        JSONObject result = new JSONObject();
-                        result.put("name", pos.getName());
-                        result.put("num", sat);
-                        result.put("timestamp", pos.GetEpoch().epochTimeMillis());
-                        result.put("dtg", pos.GetEpoch());
-                        result.put("lon", pos.GetLon());
-                        result.put("lat", pos.GetParametricLat());
-                        result.put("alt", pos.getAltitude());
-                        broadcast(result.toString());
-                        
-                        results.put(result);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }  
-                    if (cnt == 100000) {
-                        timer.cancel();
-                        break;
-                    }
+            // Populate the parameters ignoring case
+            Enumeration paramNames = request.getParameterNames();
+            while (paramNames.hasMoreElements()) {
+                String paramName = (String) paramNames.nextElement();
+                if (paramName.equalsIgnoreCase("f")) {
+                    strFormat = request.getParameter(paramName);
                 }
-                //broadcast(results.toString());
-                //broadcast("OK");
-            } catch (Exception e) {
-                e.printStackTrace();
             }
 
-        }
-
-    }
-
-    Timer timer;
-    private static Sats satDB = null;
-    private static Set<Session> peers = Collections.synchronizedSet(new HashSet<Session>());
-
-    public void broadcast(String message) throws IOException, EncodeException {
-        for (Session peer : peers) {
-            peer.getBasicRemote().sendObject(message);
-        }
-    }
-
-    @OnOpen
-    public void onOpen(Session peer) {
-        cnt = 0;
-        peers.add(peer);
-        if (satDB == null) {
-            satDB = new Sats();
-        }
-
-        if (timer == null) {
-            timer = new Timer();
-            timer.schedule(new SendSats(), 0, 10);
-        }
-    }
-
-    @OnClose
-    public void onClose(Session peer) {
-        peers.remove(peer);
-        if (peers.isEmpty()) {
-            try {
-                timer.cancel();
-                timer = null;
-            } catch (Exception e) {
-                e.printStackTrace();
+            
+            if (strFormat.equalsIgnoreCase("pjson")) {
+                strFormat = "pjson";
+            } else {
+                strFormat = "json";
             }
+            
+            JSONObject json = new JSONObject();
+            
 
+            json.put("description", JSONObject.NULL);
+            json.put("objectIdField", JSONObject.NULL);
+            json.put("displayField", "num");
+            
+            JSONObject json2 = new JSONObject();
+            json2.put("trackIdField", JSONObject.NULL);
+            json2.put("startTimeField", JSONObject.NULL);
+            json2.put("endTimeField", JSONObject.NULL);
+            json.put("timeInfo", json2);
+                                    
+            json.put("geometryType", "esriGeometryPoint");
+            json.put("geometryField", "Geometry");
+                                                
+            json2 = new JSONObject();
+            json2.put("wkid", 4326);
+            json2.put("latestWkid", 4326);
+            json.put("spatialReference", json2);
+                                    
+            // drawaingInfo
+            json2 = new JSONObject();
+            
+            // renderer
+            JSONObject json3 = new JSONObject();
+            json3.put("type", "simple");
+            json3.put("description", "");
+            
+            // symbol
+            JSONObject json4 = new JSONObject();
+            json4.put("type", "esriSMS");
+            json4.put("style", "esriSMSCircle");
+            json4.append("color", 5);
+            json4.append("color", 112);
+            json4.append("color", 176);
+            json4.append("color", 204);
+            json4.put("size", 10);
+            json4.put("angle", 10);
+            json4.put("xoffset", 10);
+            json4.put("yoffset", 10);
+            
+            // color
+            JSONObject json5 = new JSONObject();
+            json5.append("color", 255);
+            json5.append("color", 255);
+            json5.append("color", 255);
+            json5.append("color", 255);            
+            json5.put("width", 1);      
+            json4.put("outline", json5);
+            
+                              
+                        
+            json3.put("symbol", json4);
+            json2.put("renderer", json3);
+            json.put("drawingInfo", json2);
+            
+            
+            
+                        
+            json2 = new JSONObject();
+            json2.put("name","name");
+            json2.put("type","esriFieldTypeString");
+            json2.put("alias","name");
+            json2.put("nullable",true);            
+            json.append("fields", json2);
+
+            json2 = new JSONObject();
+            json2.put("name","num");
+            json2.put("type","esriFieldTypeDouble");
+            json2.put("alias","num");
+            json2.put("nullable",true);            
+            json.append("fields", json2);            
+
+            json2 = new JSONObject();
+            json2.put("name","timestamp");
+            json2.put("type","esriFieldTypeDouble");
+            json2.put("alias","timestamp");
+            json2.put("nullable",true);            
+            json.append("fields", json2);             
+            
+            
+            json2 = new JSONObject();
+            json2.put("name","dtg");
+            json2.put("type","esriFieldTypeString");
+            json2.put("alias","dtg");
+            json2.put("nullable",true);            
+            json.append("fields", json2);             
+            
+            json2 = new JSONObject();
+            json2.put("name","lon");
+            json2.put("type","esriFieldTypeDouble");
+            json2.put("alias","lon");
+            json2.put("nullable",true);            
+            json.append("fields", json2);                
+
+            json2 = new JSONObject();
+            json2.put("name","lat");
+            json2.put("type","esriFieldTypeDouble");
+            json2.put("alias","lat");
+            json2.put("nullable",true);            
+            json.append("fields", json2);                
+
+            json2 = new JSONObject();
+            json2.put("name","alt");
+            json2.put("type","esriFieldTypeDouble");
+            json2.put("alias","alt");
+            json2.put("nullable",true);            
+            json.append("fields", json2);                
+            
+            json.put("currentVersion", "10.5");
+            
+            json2 = new JSONObject();
+            json2.put("transport", "ws");
+            json2.append("urls", request.getRequestURL().replace(0, 4, "ws"));
+            
+            json.append("streamUrls", json2);
+            
+            json.put("capabilities", "broadcast,subscribe");
+            
+            if (strFormat.equalsIgnoreCase("pjson")) {
+                out.println(json.toString(2));
+            } else {
+                out.println(json.toString());
+            }
+            
+            
+            
         }
     }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
 
 }

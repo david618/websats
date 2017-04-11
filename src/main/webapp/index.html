@@ -7,21 +7,28 @@
     <body>
         <h1>Websats</h1>
         <p>Websats returns satellite information. </p>
-        
+
         <p><b>It was created to produce test data and is not intended for production use.</b></p>
-        
-    <ul>
-        <li><a href="satellites.html">/satellites</a> : returns satellite positions as points </li>
-        <li><a href="sattracks.html">/sattracks</a> : returns satellite tracks as lines </li>
-        <li><a href="satfootprints.html">/satfootprints</a> : returns satellite footprints as polygons </li>
-        <li><a href="tles.html">/tles</a> : returns satellite two line elements sets </li>
-    </ul>
+
+        <ul>
+            <li><a href="satellites.html">/satellites</a> : returns satellite positions as points </li>
+            <li><a href="sattracks.html">/sattracks</a> : returns satellite tracks as lines </li>
+            <li><a href="satfootprints.html">/satfootprints</a> : returns satellite footprints as polygons </li>
+            <li><a href="tles.html">/tles</a> : returns satellite two line elements sets </li>
+        </ul>
+
+        <p> WebSocket for Satellites </p>
+        <p> Returns all satellites every 10 seconds. Geometries converted to Web Mercator to support mapping.</p>
+        <ul>
+            <li>WebSocket Endpoint: /websats/SatStream/subscribe</li>
+            <li>Results in Window: <a href="satstream.html">/satstream.html</a></li>
+            <li>Plot Results on Map: <a href="satstreamjs.html">/satstreamjs.html</a></li>
+        </ul>
         
         <p> Unrelated to satellites </p>
-        
         <ul>
             <li><a href="ellipses.html">/ellipses</a> : returns random ellipses </li>
         </ul>
-        
+
     </body>
 </html>
