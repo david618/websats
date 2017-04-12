@@ -201,11 +201,13 @@ public class satfootprints extends HttpServlet {
 
                 featureCollection.put("features", results);
 
-                out.println(featureCollection);
+                //out.println(featureCollection);
+                featureCollection.write(out);
 
             } else if (format.equalsIgnoreCase("json")) {
                 response.setContentType("application/json;charset=UTF-8");
-                out.println(results.toString());
+                results.write(out);
+                //out.println(results.toString());
 
             } else {
                 // Pipe Delimited

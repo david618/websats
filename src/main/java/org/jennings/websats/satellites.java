@@ -109,8 +109,8 @@ public class satellites extends HttpServlet {
                     ntimes = Integer.parseInt(strNtimes);
                     if (ntimes < 1) {
                         ntimes = 1;
-                    } else if (ntimes > 100) {
-                        ntimes = 100;
+                    } else if (ntimes > 5000) {
+                        ntimes = 5000;
                     }
                     
                 } catch (Exception e) {
@@ -134,13 +134,16 @@ public class satellites extends HttpServlet {
             }
 
             JSONArray results = new JSONArray();
-            String strLines = "";
+            //String strLines = "";
             
             long st = System.currentTimeMillis();
             
             long et = st;
             
             int n = 0;
+
+            PrintWriter out = response.getWriter();
+
             
             while (n < ntimes) {                
                 long t1 = t + (et - st);
@@ -200,13 +203,20 @@ public class satellites extends HttpServlet {
 
                         } else if (geomType.equalsIgnoreCase("")) {
                             // Default is no geom at all just lon,lat
-                            strLines += pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
+//                            strLines += pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
+//                                    + strDel + pos.GetEpoch() + strDel + pos.GetLon() + strDel + pos.GetParametricLat()
+//                                    + strDel + pos.getAltitude() + "\n";
+                            String oline = pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
                                     + strDel + pos.GetEpoch() + strDel + pos.GetLon() + strDel + pos.GetParametricLat()
                                     + strDel + pos.getAltitude() + "\n";
+                            out.println(oline);
                         } else {
                             // Default to delimited the geom is inside quotes and replace quotes with \"
-                            strLines += pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
+//                            strLines += pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
+//                                    + "\"" + geom2.toString().replace("\"", "\\\"") + "\"" + "\n";
+                            String oline = pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
                                     + "\"" + geom2.toString().replace("\"", "\\\"") + "\"" + "\n";
+                            out.println(oline);
 
                         }
 
@@ -224,8 +234,6 @@ public class satellites extends HttpServlet {
 
             JSONObject resp = new JSONObject();
 
-            PrintWriter out = response.getWriter();
-
             if (fmt.equalsIgnoreCase("geojson")) {
                 response.setContentType("application/json;charset=UTF-8");
                 JSONObject featureCollection = new JSONObject();
@@ -233,13 +241,15 @@ public class satellites extends HttpServlet {
 
                 featureCollection.put("features", results);
 
-                out.println(featureCollection);
+                //out.println(featureCollection);
+                featureCollection.write(out);
 
             } else if (fmt.equalsIgnoreCase("json")) {
                 response.setContentType("application/json;charset=UTF-8");
 
                 if (results.length() > 1) {
-                    out.println(results.toString());
+                    results.write(out);
+                    //out.println(results.toString());
                 } else {
                     out.println(results.get(0).toString());
                 }
@@ -249,7 +259,7 @@ public class satellites extends HttpServlet {
             } else {
                 // Pipe Delimited
                 response.setContentType("text/plain;charset=UTF-8");
-                out.println(strLines);
+//                out.println(strLines);
             }
 
         } catch (Exception e) {
