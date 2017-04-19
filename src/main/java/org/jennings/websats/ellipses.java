@@ -139,6 +139,9 @@ public class ellipses extends HttpServlet {
             Random rnd = new Random(System.currentTimeMillis());
 
             int numLandGrids = landGrids.size();
+
+            JSONObject wkid = new JSONObject();
+            wkid.put("wkid", 4326);
             
             // Process the list of satellites
             while (i < num) {
@@ -194,6 +197,8 @@ public class ellipses extends HttpServlet {
                     results.put(result);
                 } else if (format.equalsIgnoreCase("json") || format.equalsIgnoreCase("txt")) {
 
+
+                    
                     JSONObject geom2 = new JSONObject();
                     if (strGeomType.equalsIgnoreCase("geojson")) {
                         geom2.put("coordinates", polys);
@@ -209,6 +214,12 @@ public class ellipses extends HttpServlet {
                         result.put("num", i);
                         result.put("clon", lon);
                         result.put("clat", lat);
+                        JSONObject pt = new JSONObject();
+                        pt.put("x", lon);
+                        pt.put("y", lat);
+                        pt.put("spatialReference",wkid);
+			
+                        result.put("geompt", pt);
                         result.put("geometry", geom2);
                         results.put(result);
 
