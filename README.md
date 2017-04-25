@@ -76,6 +76,44 @@ The accuracy of the satellite positions depends on the currency of the TLE data 
 
 You can do this manually by downloading the TLE's from [Celestrack](https://www.celestrak.com/NORAD/elements/).  The script downloads several different sets and concatenates them into the one file (sats.tle).
 
+## Setting up Proxy
+
+I tried to setup a proxy for websocket in HTTP with no success. 
+
+I switched to nginx and I was able to configure proxy.
+
+In /etc/nginx/nginx.conf I added these items to the server block.
+
+<pre>
+        location /websats/SatStream/subscribe {
+            proxy_pass http://localhost:9090/websats/SatStream/subscribe;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
+
+        location /websats {
+                proxy_set_header X-Forwarded-Host $host;
+                proxy_set_header X-Forwarded-Server $host;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header Host $host;
+                proxy_pass http://localhost:9090/websats;
+        }
+
+</pre>
+
+I got http working; have not tried to configure https yet.
+
+## Configure WebSocket for ArcGIS 
+
+Added a servlet SatStream.java which returns a schema which is expected for the Esri Javascript Client.
+
+For the Stream Servlet I set the path to be /SatStream/subscribe which is defined in the schema. 
+
+With these changes I was able to create a Esri Javascript client that consumes the websocket.  
+
+
+
 
 
 
