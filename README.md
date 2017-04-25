@@ -104,6 +104,8 @@ In /etc/nginx/nginx.conf I added these items to the server block.
 
 I got http working; have not tried to configure https yet.
 
+I also noted an issue with the Tomcat version I was using. The Stream Service would fail if more than one client subscribed to the stream. I changed to [Glassfish](https://glassfish.java.net/) or [Jetty](http://www.eclipse.org/jetty/download.html) and I did not have this problem. I think the latest version of Tomcat works too.
+
 ## Configure WebSocket for ArcGIS 
 
 Added a servlet SatStream.java which returns a schema which is expected for the Esri Javascript Client.
