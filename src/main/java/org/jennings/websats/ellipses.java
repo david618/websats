@@ -136,7 +136,7 @@ public class ellipses extends HttpServlet {
 
             int i = 0;
 
-            Random rnd = new Random(System.currentTimeMillis());
+            Random rnd = new Random();
 
             int numLandGrids = landGrids.size();
 
