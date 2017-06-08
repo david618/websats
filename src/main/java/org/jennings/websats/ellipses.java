@@ -142,6 +142,8 @@ public class ellipses extends HttpServlet {
 
             JSONObject wkid = new JSONObject();
             wkid.put("wkid", 4326);
+
+            PrintWriter out = response.getWriter();
             
             // Process the list of satellites
             while (i < num) {
@@ -195,7 +197,7 @@ public class ellipses extends HttpServlet {
                     result.put("geometry", geom);
 
                     results.put(result);
-                } else if (format.equalsIgnoreCase("json") || format.equalsIgnoreCase("txt")) {
+                } else if (format.equalsIgnoreCase("json") || format.equalsIgnoreCase("ndjson") || format.equalsIgnoreCase("txt")) {
 
 
                     
@@ -207,7 +209,7 @@ public class ellipses extends HttpServlet {
                         geom2.put("rings", polys.getJSONArray(0));
                     }
 
-                    if (format.equalsIgnoreCase("json")) {
+                    if (format.equalsIgnoreCase("json") || format.equalsIgnoreCase("ndjson")) {
                         result.put("a", a);
                         result.put("b", b);
                         result.put("rot", r);
@@ -222,11 +224,18 @@ public class ellipses extends HttpServlet {
                         result.put("geompt", pt);
                         result.put("geometry", geom2);
                         results.put(result);
+                        
+                        if (format.equalsIgnoreCase("json")) {
+                            results.put(result);
+                        } else {
+                            out.println(result.toString());
+                        }                   
 
                     } else {
                         // Default to delimited
-                        strLines += a + "|" + b + "|" + r + "|" + i + "|" + lon + "|" + lat + "|" 
-                                + geom2.toString() + "\n";
+                        String strLine = a + "|" + b + "|" + r + "|" + i + "|" + lon + "|" + lat + "|" 
+                                + geom2.toString() + "";
+                        out.println(strLine);
 
                     }
 
@@ -234,14 +243,8 @@ public class ellipses extends HttpServlet {
                     throw new Exception("Invalid format. Supported formats: txt,json,geojson");
                 }
 
-//                if (i == 7) {
-//                    break;
-//                }
             }
 
-            JSONObject resp = new JSONObject();
-
-            PrintWriter out = response.getWriter();
 
             if (format.equalsIgnoreCase("geojson")) {
                 response.setContentType("application/json;charset=UTF-8");
@@ -249,13 +252,14 @@ public class ellipses extends HttpServlet {
                 featureCollection.put("type", "FeatureCollection");
 
                 featureCollection.put("features", results);
-
-                out.println(featureCollection);
+                
+                featureCollection.write(out);
 
             } else if (format.equalsIgnoreCase("json")) {
                 response.setContentType("application/json;charset=UTF-8");
-                out.println(results.toString());
-
+                
+                results.write(out);
+                
             } else {
                 // Pipe Delimited
                 response.setContentType("text/plain;charset=UTF-8");
