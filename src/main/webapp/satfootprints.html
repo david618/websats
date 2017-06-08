@@ -10,12 +10,19 @@
         <p>Returns satellite footprints as polygon. Foot prints crossing 180 lon are excluded for now. </p>
         <p><i>Parameters</i></p>
         <ul>
-            <li> f : Format (json, geojson, comma delimited (default)</li>
+            <li> f : Format (json, geojson, txt (default))</li>
             <li> names: Comma separated list of Satellite Names. You can end with * to get Satellites staring with prefix (e.g. GPS*). </li>
             <li> nums: Comma separated list of Satellite Nums. If Nums is specified Names are ignored. </li>
         </ul>
 
-
+        <p><i>Formats</i></p>
+        <ul>
+            <li>json: JSON Array</li>
+            <li>ndjson: Newline Delimited JSON. Each line is a valid JSON object</li>
+            <li>geojson: Valid GeoJSON</li>
+            <li>txt: Pipe delimited values. Each event is new line delimited</li>
+        </ul>
+        
         <p><i>Fields in Order Returned</i> </p>
         <ul>
             <li>name: Satellite Name</li>
@@ -37,8 +44,15 @@
             <li><b>JSON</b>
                 <ul>
                     <li>Get all satellites: <a href="satfootprints?f=json">/satfootprints?f=json</a></li>
-                    <li>Get satellites by number: <a href="satfootprints?f=json&nums=29709,41895">/satfootprints?f=pjson&nums=29709,41895</a></li>
+                    <li>Get satellites by number: <a href="satfootprints?f=json&nums=29709,41895">/satfootprints?f=json&nums=29709,41895</a></li>
                     <li>Get satellites by number using 100 points: <a href="satfootprints?f=json&nums=29709,41895&npts=100">/satfootprints?f=json&nums=29709,41895&npts=100</a></li>
+                </ul>
+            </li>
+            <li><b>NDJSON</b>
+                <ul>
+                    <li>Get all satellites: <a href="satfootprints?f=ndjson">/satfootprints?f=ndjson</a></li>
+                    <li>Get satellites by number: <a href="satfootprints?f=ndjson&nums=29709,41895">/satfootprints?f=ndjson&nums=29709,41895</a></li>
+                    <li>Get satellites by number using 100 points: <a href="satfootprints?f=ndjson&nums=29709,41895&npts=100">/satfootprints?f=ndjson&nums=29709,41895&npts=100</a></li>
                 </ul>
             </li>
             <li><b>GEOJSON</b>

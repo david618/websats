@@ -121,6 +121,7 @@ public class satfootprints extends HttpServlet {
             String strLines = "";
 
             int i = 0;
+            PrintWriter out = response.getWriter();
 
             // Process the list of satellites
             for (String sat : sats) {
@@ -158,7 +159,7 @@ public class satfootprints extends HttpServlet {
                     result.put("geometry", geom);
 
                     results.put(result);
-                } else if (format.equalsIgnoreCase("json") || format.equalsIgnoreCase("txt")) {
+                } else if (format.equalsIgnoreCase("json") || format.equalsIgnoreCase("ndjson") || format.equalsIgnoreCase("txt")) {
 
                     JSONObject geom2 = new JSONObject();
                     if (strGeomType.equalsIgnoreCase("geojson")) {
@@ -172,12 +173,18 @@ public class satfootprints extends HttpServlet {
                         result.put("name", pos.getName());
                         result.put("num", sat);
                         result.put("geometry", geom2);
-                        results.put(result);
+                        if (format.equalsIgnoreCase("json")) {
+                            results.put(result);
+                        } else {
+                            out.println(result.toString());
+                        }
+                        
 
                     } else {
                         // Default to delimited
-                        strLines += pos.getName() + "|" + pos.getNum() + "|"
-                                + geom2.toString() + "\n";
+                        String strLine = pos.getName() + "|" + pos.getNum() + "|"
+                                + geom2.toString() + "";
+                        out.println(strLine);
 
                     }
 
@@ -185,14 +192,8 @@ public class satfootprints extends HttpServlet {
                     throw new Exception("Invalid format. Supported formats: txt,json,geojson");
                 }
 
-//                if (i == 7) {
-//                    break;
-//                }
             }
 
-            JSONObject resp = new JSONObject();
-
-            PrintWriter out = response.getWriter();
 
             if (format.equalsIgnoreCase("geojson")) {
                 response.setContentType("application/json;charset=UTF-8");
@@ -201,18 +202,16 @@ public class satfootprints extends HttpServlet {
 
                 featureCollection.put("features", results);
 
-                //out.println(featureCollection);
                 featureCollection.write(out);
 
             } else if (format.equalsIgnoreCase("json")) {
                 response.setContentType("application/json;charset=UTF-8");
                 results.write(out);
-                //out.println(results.toString());
 
             } else {
                 // Pipe Delimited
                 response.setContentType("text/plain;charset=UTF-8");
-                out.println(strLines);
+
             }
 
         } catch (Exception e) {

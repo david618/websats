@@ -11,10 +11,18 @@
         
         <p><i>Parameters</i></p>
         <ul>
-            <li> f : Format (json, geojson, comma delimited (default)</li>
+            <li> f : Format (json, geojson, txt (default))</li>
             <li> num: Number to return (defaults to 1)</li>
         </ul>
 
+
+        <p><i>Formats</i></p>
+        <ul>
+            <li>json: JSON Array</li>
+            <li>ndjson: Newline Delimited JSON. Each line is a valid JSON object</li>
+            <li>geojson: Valid GeoJSON</li>
+            <li>txt: Pipe delimited values. Each event is new line delimited</li>
+        </ul>        
 
         <p><i>Fields in Order Returned</i> </p>
         <ul>
@@ -39,6 +47,12 @@
                 <ul>
                     <li>Get one ellipse <a href="ellipses?f=json">/ellipses?f=json</a></li>
                     <li>Get 20 ellipses <a href="ellipses?f=json&num=20">/ellipses?f=json&num=20</a></li>
+                </ul>
+            </li>
+            <li><b>NDJSON</b>
+                <ul>
+                    <li>Get one ellipse <a href="ellipses?f=ndjson">/ellipses?f=ndjson</a></li>
+                    <li>Get 20 ellipses <a href="ellipses?f=ndjson&num=20">/ellipses?f=ndjson&num=20</a></li>
                 </ul>
             </li>
             <li><b>GEOJSON</b>

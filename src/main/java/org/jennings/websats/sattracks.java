@@ -1,7 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * sattracks returns lines which 2 or more satellite positions
  */
 package org.jennings.websats;
 
@@ -120,6 +118,8 @@ public class sattracks extends HttpServlet {
 
             JSONArray results = new JSONArray();
             String strLines = "";
+            
+            PrintWriter out = response.getWriter();
 
             // Process the list of satellites
             for (String sat : sats) {
@@ -211,7 +211,7 @@ public class sattracks extends HttpServlet {
                     result.put("geometry", geom);
 
                     results.put(result);
-                } else if (strFormat.equalsIgnoreCase("json") || strFormat.equalsIgnoreCase("txt")) {
+                } else if (strFormat.equalsIgnoreCase("json") || strFormat.equalsIgnoreCase("ndjson") || strFormat.equalsIgnoreCase("txt")) {
 
                     JSONObject geom2 = new JSONObject();
                     if (strGeomType.equalsIgnoreCase("geojson")) {
@@ -223,16 +223,25 @@ public class sattracks extends HttpServlet {
                         geom2.put("paths", path);
                     }
 
-                    if (strFormat.equalsIgnoreCase("json")) {
+                    if (strFormat.equalsIgnoreCase("json") || strFormat.equalsIgnoreCase("ndjson")) {
                         result.put("name", pos.getName());
                         result.put("num", sat);
                         result.put("geometry", geom2);
-                        results.put(result);
+                        
+                        if (strFormat.equalsIgnoreCase("json")) {
+                            results.put(result);
+                        } else {
+                            out.println(result.toString());
+                        }
+                        
+                        
 
                     } else {
                         // Default to delimited
-                        strLines += pos.getName() + "|" + pos.getNum() + "|"
-                                + geom2.toString() + "\n";
+                        
+                        String strLine = pos.getName() + "|" + pos.getNum() + "|"
+                                + geom2.toString() + "";
+                        out.println(strLine);
 
                     }
 
@@ -242,9 +251,6 @@ public class sattracks extends HttpServlet {
 
             }
 
-            JSONObject resp = new JSONObject();
-
-            PrintWriter out = response.getWriter();
 
             if (strFormat.equalsIgnoreCase("geojson")) {
                 response.setContentType("application/json;charset=UTF-8");
@@ -253,22 +259,16 @@ public class sattracks extends HttpServlet {
 
                 featureCollection.put("features", results);
 
-                out.println(featureCollection);
+                featureCollection.write(out);
+                
 
             } else if (strFormat.equalsIgnoreCase("json")) {
                 response.setContentType("application/json;charset=UTF-8");
-                //resp.put("startTime", tstart);
-                //resp.put("duration", tduration);
-                //resp.put("step", tstep);
-                //resp.put("sats", results);                
-
-                //out.println(resp.toString());
+                results.write(out);
                 out.println(results.toString());
 
             } else {
-                // Pipe Delimited
-                response.setContentType("text/plain;charset=UTF-8");
-                out.println(strLines);
+                response.setContentType("text/plain;charset=UTF-8");                
             }
 
         } catch (Exception e) {

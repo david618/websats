@@ -50,7 +50,7 @@ public class satellites extends HttpServlet {
             String strNames = "";
             String strTime = "";
             String strGeomType = "";
-            String strDel = ",";
+            String strDel = "|";
             String strNtimes = "";
 
             // Populate the parameters ignoring case
@@ -75,12 +75,14 @@ public class satellites extends HttpServlet {
             String fmt = "txt";
             if (strFormat.equalsIgnoreCase("txt") || strFormat.equalsIgnoreCase("")) {
                 fmt = "txt";
+            } else if (strFormat.equalsIgnoreCase("ndjson")) {
+                fmt = "ndjson";
             } else if (strFormat.equalsIgnoreCase("json")) {
                 fmt = "json";
             } else if (strFormat.equalsIgnoreCase("geojson")) {
                 fmt = "geojson";
             } else {
-                throw new Exception("Unsupported Format. Supported formats: txt, json, geojson");
+                throw new Exception("Unsupported Format. Supported formats: txt, json, ndjson, geojson");
             }
 
             String geomType = "";
@@ -174,7 +176,7 @@ public class satellites extends HttpServlet {
                         result.put("geometry", geom);
 
                         results.put(result);
-                    } else if (fmt.equalsIgnoreCase("json") || fmt.equalsIgnoreCase("txt")) {
+                    } else if (fmt.equalsIgnoreCase("json") || fmt.equalsIgnoreCase("ndjson") ||  fmt.equalsIgnoreCase("txt")) {
 
                         JSONObject geom2 = new JSONObject();
                         if (geomType.equalsIgnoreCase("geojson")) {
@@ -187,7 +189,7 @@ public class satellites extends HttpServlet {
 
                         }
 
-                        if (fmt.equalsIgnoreCase("json")) {
+                        if (fmt.equalsIgnoreCase("json") || fmt.equalsIgnoreCase("ndjson")) {
                             result.put("name", pos.getName());
                             result.put("num", sat);
                             result.put("timestamp", pos.GetEpoch().epochTimeMillis());
@@ -199,7 +201,12 @@ public class satellites extends HttpServlet {
                                 result.put("geometry", geom2);
                             } 
 
-                            results.put(result);
+                            if (fmt.equalsIgnoreCase("json")) {
+                                results.put(result);
+                            } else {
+                                out.println(result.toString());
+                            }
+                            
 
                         } else if (geomType.equalsIgnoreCase("")) {
                             // Default is no geom at all just lon,lat
@@ -208,14 +215,14 @@ public class satellites extends HttpServlet {
 //                                    + strDel + pos.getAltitude() + "\n";
                             String oline = pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
                                     + strDel + pos.GetEpoch() + strDel + pos.GetLon() + strDel + pos.GetParametricLat()
-                                    + strDel + pos.getAltitude() + "\n";
+                                    + strDel + pos.getAltitude() + "";
                             out.println(oline);
                         } else {
                             // Default to delimited the geom is inside quotes and replace quotes with \"
 //                            strLines += pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
 //                                    + "\"" + geom2.toString().replace("\"", "\\\"") + "\"" + "\n";
                             String oline = pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
-                                    + "\"" + geom2.toString().replace("\"", "\\\"") + "\"" + "\n";
+                                    + "\"" + geom2.toString().replace("\"", "\\\"") + "\"" + "";
                             out.println(oline);
 
                         }

@@ -11,13 +11,21 @@
         
         <p><i>Parameters</i></p>
         <ul>
-            <li> f : Format (json, geojson, comma delimited (default)</li>
+            <li> f : Format (json, ndjson, geojson, txt (default))</li>
             <li> names: Comma separated list of Satellite Names. You can end with * to get Satellites staring with prefix (e.g. GPS*). </li>
             <li> nums: Comma separated list of Satellite Nums. If Nums is specified Names are ignored. </li>
             <li> t: Epoch Time to return </li>
             <li> n: Number of samples for each satellite</li>
         </ul>
 
+        <p><i>Formats</i></p>
+        <ul>
+            <li>json: JSON Array</li>
+            <li>ndjson: Newline Delimited JSON. Each line is a valid JSON object</li>
+            <li>geojson: Valid GeoJSON</li>
+            <li>txt: Pipe delimited values. Each event is new line delimited</li>
+        </ul>
+        
 
         <p><i>Fields in Order Returned</i> </p>
         <ul>
@@ -43,6 +51,12 @@
                 <ul>
                     <li>Get all satellites: <a href="satellites?f=json">/satellites?f=json</a></li>
                     <li>Get satellites by number: <a href="satellites?f=json&nums=29709,41895">/satellites?f=json&nums=29709,41895</a></li>
+                </ul>
+            </li>
+            <li><b>NDJSON</b>
+                <ul>
+                    <li>Get all satellites: <a href="satellites?f=ndjson">/satellites?f=ndjson</a></li>
+                    <li>Get satellites by number: <a href="satellites?f=ndjson&nums=29709,41895">/satellites?f=ndjson&nums=29709,41895</a></li>
                 </ul>
             </li>
             <li><b>GEOJSON</b>

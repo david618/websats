@@ -39,10 +39,10 @@ public class GreatCircle {
     public DistanceBearing getDistanceBearing(GeographicCoordinate coord1, GeographicCoordinate coord2) {
 
         double lon1 = coord1.getLon();
-        double lat1 = coord1.getLon();
+        double lat1 = coord1.getLat();
 
         double lon2 = coord2.getLon();
-        double lat2 = coord2.getLon();
+        double lat2 = coord2.getLat();
 
         DistanceBearing distB = new DistanceBearing();
 
