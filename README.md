@@ -108,6 +108,13 @@ I got http working; have not tried to configure https yet.
 
 I also noted an issue with the Tomcat version I was using. The Stream Service would fail if more than one client subscribed to the stream. I changed to [Glassfish](https://glassfish.java.net/) or [Jetty](http://www.eclipse.org/jetty/download.html) and I did not have this problem. I think the latest version of Tomcat works too.
 
+If selinux is enabled (default); then you'll need to add a rule to allow nginx to connect to localhost:8080.
+
+<pre>
+setsebool -P httpd_can_network_connect true
+</pre>
+
+
 ## Configure WebSocket for ArcGIS 
 
 Added a servlet SatStream.java which returns a schema which is expected for the Esri Javascript Client.
