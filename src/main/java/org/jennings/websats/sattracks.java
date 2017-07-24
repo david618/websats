@@ -1,7 +1,7 @@
 /**
  * sattracks returns lines which 2 or more satellite positions
  */
-package org.jennings.websats;
+package org.jennings.websats; 
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -265,7 +265,7 @@ public class sattracks extends HttpServlet {
             } else if (strFormat.equalsIgnoreCase("json")) {
                 response.setContentType("application/json;charset=UTF-8");
                 results.write(out);
-                out.println(results.toString());
+                //out.println(results.toString());
 
             } else {
                 response.setContentType("text/plain;charset=UTF-8");                
