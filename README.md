@@ -60,10 +60,10 @@ Download the zip file. Unzip.
 Download the tar.gz. 
 
 <pre>
-$ curl -O http://apache.org/dist//tomcat/tomcat-8/v8.0.45/bin/apache-tomcat-8.0.45.tar.gz 
-$ md5sum apache-tomcat-8.0.45.tar.gz
-906e32b76c26eb84ab1989b7930fe9b4 apache-tomcat-8.0.45.tar.gz
-$ tar xvzf apache-tomcat-8.0.45.tar.gz 
+$ curl -O http://apache.org/dist//tomcat/tomcat-8/v8.0.45/bin/apache-tomcat-8.0.46.tar.gz 
+$ md5sum apache-tomcat-8.0.46.tar.gz
+47b60f7bf757cedcb59c519ea3dcede2  apache-tomcat-8.0.46.tar.gz
+$ tar xvzf apache-tomcat-8.0.46.tar.gz 
 </pre>
 
 From the target folder of websats project you cloned earlier; copy the war file (e.g. websats-1.0-SNAPSHOT.war) to the "webapps" folder of tomcat. I usually rename the war file to "websats.war"
