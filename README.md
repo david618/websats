@@ -60,7 +60,7 @@ Download the zip file. Unzip.
 Download the tar.gz. 
 
 <pre>
-$ curl -O http://apache.org/dist//tomcat/tomcat-8/v8.0.45/bin/apache-tomcat-8.0.46.tar.gz 
+$ curl -O http://apache.org/dist//tomcat/tomcat-8/v8.0.46/bin/apache-tomcat-8.0.46.tar.gz 
 $ md5sum apache-tomcat-8.0.46.tar.gz
 47b60f7bf757cedcb59c519ea3dcede2  apache-tomcat-8.0.46.tar.gz
 $ tar xvzf apache-tomcat-8.0.46.tar.gz 
