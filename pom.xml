@@ -12,6 +12,7 @@
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <docker.skip>false</docker.skip>
     </properties>
     
     <dependencies>
@@ -50,11 +51,11 @@
                         <id>default</id>
                         <goals>
                             <goal>build</goal>
-                            <goal>push</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
+                    <skip>${docker.skip}</skip>
                     <repository>david62243/websats</repository>
                     <tag>latest</tag>
                 </configuration>
