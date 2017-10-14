@@ -41,10 +41,19 @@ Now the [websats](https://github.com/david618/websats)
 $ cd 
 $ git clone https://github.com/david618/websats
 $ cd websats
-$ mvn install
+$ mvn install -Ddocker.skip=true
 </pre>
 
 Both should end with "BUILD SUCCESS"
+
+To build the docker image.  
+
+**NOTE** User must have permissions to create docker images.
+
+<pre>
+mvn clean install 
+</pre>
+
 
 ## Deploy
 
