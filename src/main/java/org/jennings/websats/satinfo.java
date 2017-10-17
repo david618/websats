@@ -1,3 +1,21 @@
+/*
+ * (C) Copyright 2017 David Jennings
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Contributors:
+ *     David Jennings
+ */
 package org.jennings.websats;
 
 import java.io.IOException;
@@ -5,6 +23,7 @@ import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.HashSet;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,13 +33,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- *
- * @author david
+ * In Development: Output json or delimited txt with point, line(Path for +- 1/2 day, and polygon for a specified satellite.
+ * @author djennings
  */
-public class satfootprints extends HttpServlet {
+@WebServlet(name = "satinfo", urlPatterns = {"/satinfo"})
+public class satinfo extends HttpServlet {
 
-    private static Sats satDB = null;
-
+    private static Sats satDB = null;    
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -32,7 +52,6 @@ public class satfootprints extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         try {
             if (satDB == null) {
                 satDB = new Sats();
@@ -44,7 +63,6 @@ public class satfootprints extends HttpServlet {
             String strNames = "";
             String strTime = "";
             String strNumPoints = "";
-            String strDel = "|";
             boolean isNums = false;
 
             // Populate the parameters ignoring case
@@ -144,28 +162,7 @@ public class satfootprints extends HttpServlet {
                     e.printStackTrace();
                 }
 
-                if (format.equalsIgnoreCase("geojson")) {
-
-                    result.put("type", "Feature");
-
-                    JSONObject properties = new JSONObject();
-
-                    properties.put("name", pos.getName());
-                    properties.put("num", sat);
-                    properties.put("timestamp", pos.GetEpoch().epochTimeMillis());
-                    properties.put("dtg", pos.GetEpoch());
-                    properties.put("lon", pos.GetLon());
-                    properties.put("lat", pos.GetParametricLat());
-                    properties.put("alt", pos.getAltitude());
-                    result.put("properties", properties);
-
-                    JSONObject geom = new JSONObject();
-                    geom.put("type", "MultiPolygon");
-                    geom.put("coordinates", polys);
-                    result.put("geometry", geom);
-
-                    results.put(result);
-                } else if (format.equalsIgnoreCase("json") || format.equalsIgnoreCase("ndjson") || format.equalsIgnoreCase("txt")) {
+                if (format.equalsIgnoreCase("json") || format.equalsIgnoreCase("ndjson") || format.equalsIgnoreCase("txt")) {
 
                     JSONObject geom2 = new JSONObject();
                     if (strGeomType.equalsIgnoreCase("geojson")) {
@@ -178,11 +175,6 @@ public class satfootprints extends HttpServlet {
                     if (format.equalsIgnoreCase("json")) {
                         result.put("name", pos.getName());
                         result.put("num", sat);
-                        result.put("timestamp", pos.GetEpoch().epochTimeMillis());
-                        result.put("dtg", pos.GetEpoch());
-                        result.put("lon", pos.GetLon());
-                        result.put("lat", pos.GetParametricLat());
-                        result.put("alt", pos.getAltitude());
                         result.put("geometry", geom2);
                         if (format.equalsIgnoreCase("json")) {
                             results.put(result);
@@ -193,31 +185,20 @@ public class satfootprints extends HttpServlet {
 
                     } else {
                         // Default to delimited
-                        String oline = pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
-                                    + strDel + pos.GetEpoch() + strDel + pos.GetLon() + strDel + pos.GetParametricLat()
-                                    + strDel + pos.getAltitude() + strDel + geom2.toString() + "";
-                        
-                        out.println(oline);
+                        String strLine = pos.getName() + "|" + pos.getNum() + "|"
+                                + geom2.toString() + "";
+                        out.println(strLine);
 
                     }
 
                 } else {
-                    throw new Exception("Invalid format. Supported formats: txt,json,geojson");
+                    throw new Exception("Invalid format. Supported formats: txt,json, or ndjson");
                 }
 
             }
 
 
-            if (format.equalsIgnoreCase("geojson")) {
-                response.setContentType("application/json;charset=UTF-8");
-                JSONObject featureCollection = new JSONObject();
-                featureCollection.put("type", "FeatureCollection");
-
-                featureCollection.put("features", results);
-
-                featureCollection.write(out);
-
-            } else if (format.equalsIgnoreCase("json")) {
+            if (format.equalsIgnoreCase("json")) {
                 response.setContentType("application/json;charset=UTF-8");
                 results.write(out);
 
@@ -243,7 +224,7 @@ public class satfootprints extends HttpServlet {
                 out.println("</html>");
             }
         }
-
+        
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
