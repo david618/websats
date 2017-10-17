@@ -13,8 +13,9 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.jennings.geomtools.GeographicCoordinate;
-import org.jennings.geomtools.GreatCircle;
+import org.jennings.geotools.Ellipse;
+import org.jennings.geotools.GeographicCoordinate;
+import org.jennings.geotools.GreatCircle;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -170,8 +171,8 @@ public class ellipses extends HttpServlet {
                 try {
 
                     // Problem with large areas crossing -180 and 180 for now I'll set to small number
-                    GreatCircle gc = new GreatCircle();
-                    polys = gc.createEllipse3(lon, lat, a, b, r, numPoints, isClockwise);
+                    Ellipse el = new Ellipse();
+                    polys = el.createEllipse(lon, lat, a, b, r, numPoints, isClockwise);
 
                 } catch (Exception e) {
                     e.printStackTrace();

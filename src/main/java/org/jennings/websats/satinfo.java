@@ -27,7 +27,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.jennings.geomtools.GreatCircle;
+import org.jennings.geotools.Circle;
+import org.jennings.geotools.GreatCircle;
 import org.jennings.mvnsat.Sat;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -155,8 +156,8 @@ public class satinfo extends HttpServlet {
                     double r = pos.getRadiusFootprint();
                     // Problem with large areas crossing -180 and 180 for now I'll set to small number
 
-                    GreatCircle gc = new GreatCircle();
-                    polys = gc.createCircle(pos.GetLon(), pos.GetParametricLat(), r, numPoints, isClockwise);
+                    Circle cir = new Circle();
+                    polys = cir.createCircle(pos.GetLon(), pos.GetParametricLat(), r, numPoints, isClockwise);
 
                 } catch (Exception e) {
                     e.printStackTrace();

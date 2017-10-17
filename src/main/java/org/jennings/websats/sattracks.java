@@ -11,7 +11,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.jennings.geomtools.GeographicCoordinate;
+import org.jennings.geotools.GeographicCoordinate;
 import org.jennings.mvnsat.Sat;
 import org.json.JSONArray;
 import org.json.JSONObject;

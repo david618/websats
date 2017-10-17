@@ -8,7 +8,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.jennings.geomtools.GreatCircle;
+import org.jennings.geotools.Circle;
+import org.jennings.geotools.GreatCircle;
 import org.jennings.mvnsat.Sat;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -137,8 +138,8 @@ public class satfootprints extends HttpServlet {
                     double r = pos.getRadiusFootprint();
                     // Problem with large areas crossing -180 and 180 for now I'll set to small number
 
-                    GreatCircle gc = new GreatCircle();
-                    polys = gc.createCircle(pos.GetLon(), pos.GetParametricLat(), r, numPoints, isClockwise);
+                    Circle cir = new Circle();
+                    polys = cir.createCircle(pos.GetLon(), pos.GetParametricLat(), r, numPoints, isClockwise);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -172,7 +173,7 @@ public class satfootprints extends HttpServlet {
                         geom2.put("coordinates", polys);
 
                     } else {
-                        geom2.put("rings", polys.getJSONArray(0));
+                        geom2.put("rings", polys);
                     }
 
                     if (format.equalsIgnoreCase("json")) {
