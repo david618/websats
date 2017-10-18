@@ -1,8 +1,9 @@
 #!/bin/bash
 
 NAMES=(stations gps-ops glo-ops resource iridium intelsat iridium-NEXT globalstar orbcomm ses musson science)
-FOLDER=/home/david
-TLEFILE=/home/david/github/websats/src/main/resources/sats.tle
+FOLDER=~
+#TLEFILE=~/github/websats/src/main/resources/sats.tle
+TLEFILE=~/websats/src/main/resources/sats.tle
 
 #FOLDER=/home/tomcat
 #TLEFILE=/opt/tomcat/webapps/websats/WEB-INF/classes/sats.tle
