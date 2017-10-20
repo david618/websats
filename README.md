@@ -89,9 +89,18 @@ You can do this manually by downloading the TLE's from [Celestrack](https://www.
 
 ## Setting up Proxy
 
-I tried to setup a proxy for websocket in HTTP with no success. 
+### Apache
 
-I switched to nginx and I was able to configure proxy.
+Added these lines to proxy.conf 
+
+ProxyPreserveHost On
+
+ProxyPass /websats/SatStream ws://boot:8080/websats/SatStream
+ProxyPass /websats http://boot:8080/websats
+
+**NOTE** You must add the ws proxy before the http proxy.
+
+### Nginx
 
 In /etc/nginx/nginx.conf I added these items to the server block.
 
