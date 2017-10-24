@@ -93,10 +93,12 @@ You can do this manually by downloading the TLE's from [Celestrack](https://www.
 
 Added these lines to proxy.conf 
 
+<pre>
 ProxyPreserveHost On
 
 ProxyPass /websats/SatStream ws://boot:8080/websats/SatStream
 ProxyPass /websats http://boot:8080/websats
+</pre>
 
 **NOTE** You must add the ws proxy before the http proxy.
 
