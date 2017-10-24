@@ -220,10 +220,17 @@ public class satinfo extends HttpServlet {
                 if (strGeomType.equalsIgnoreCase("geojson")) {
                     geomTrack.put("coordinates", tracks);
 
-                } else {
-                    JSONArray path = new JSONArray();
-                    path.put(tracks);
-                    geomTrack.put("paths", path);
+                } else {                    
+                    JSONArray paths = new JSONArray();
+                    int numPaths = tracks.length();
+                    int pathNum = 0;
+                    while (pathNum < numPaths) {
+                        paths.put(tracks.getJSONArray(pathNum));
+                        pathNum++;
+                    }
+
+                    geomTrack.put("paths", paths);                    
+                    
                 }
 
                 result.put("name", pos.getName());

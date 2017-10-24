@@ -215,12 +215,19 @@ public class sattracks extends HttpServlet {
 
                     JSONObject geom2 = new JSONObject();
                     if (strGeomType.equalsIgnoreCase("geojson")) {
-                        geom2.put("coordinates", line);
+                        geom2.put("coordinates", lines);
 
-                    } else {
-                        JSONArray path = new JSONArray();
-                        path.put(line);
-                        geom2.put("paths", path);
+                    } else {        
+                                             
+                        JSONArray paths = new JSONArray();
+                        int numPaths = lines.length();
+                        int pathNum = 0;
+                        while (pathNum < numPaths) {
+                            paths.put(lines.getJSONArray(pathNum));
+                            pathNum++;
+                        }
+                        
+                        geom2.put("paths", paths);
                     }
 
                     if (strFormat.equalsIgnoreCase("json") || strFormat.equalsIgnoreCase("ndjson")) {
