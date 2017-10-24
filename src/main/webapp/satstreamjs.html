@@ -1,176 +1,189 @@
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=10" />
-        <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
-        <title>StreamLayer Using Stream Service</title>
-        <link rel="stylesheet" href="http://js.arcgis.com/3.18/dijit/themes/tundra/tundra.css">
-        <link rel="stylesheet" href="http://js.arcgis.com/3.18/esri/css/esri.css">
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>StreamLayer using ArcGIS API for JavaScript and ArcGIS Server Stream Service</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/3.22/dijit/themes/tundra/tundra.css">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.22/esri/css/esri.css">
+    <style type="text/css">
+      html, body {
+        height: 100%; width: 100%;
+        margin: 0; padding: 0;
+      }
+      body{
+        background-color: #fff; overflow:hidden;
+        font-family: sans-serif;
+      }
+      p {
+        margin: 2px;
+      }
+      .controls {
+        margin-left: 10px;
+        padding-top: 10px;
+      }
+      #map {
+        width: 100%;
+        height: 80%;
+      }
+    </style>
+    <script src="https://js.arcgis.com/3.22/"></script>
+  </head>
+  <body class="tundra">
+    <div id="map"></div>
+    <div class="controls">
+      <span>Stream service url: </span><input type="text" id="txtStreamUrl" value="/websats/SatStream" style="color:#ffffff; width:600px; background-color: #8b0000"/><br>
+      <input type="button" id="cmdToggleStreamLayer" value="Make Stream Layer" />
+    </div>
+<!--    <div id="divFilterControls" class="controls" style="display: none">
+      <p>Draw extent to filter messages by a bounding box</p>
+      <input type="button" id="cmdToggleSpatialFilter" value="Draw Extent" /><br>
+    </div>-->
+  </body>
+  <script>
+    require(["esri/map",
+      "esri/toolbars/draw",
+      "esri/layers/StreamLayer",
+      "esri/InfoTemplate",
+      "esri/graphic",
+      "esri/symbols/SimpleFillSymbol",
+      "esri/symbols/SimpleLineSymbol",
+      "dojo/_base/Color",
+      "dojo/on",
+      "dojo/domReady!"
+    ], function(Map, Draw, StreamLayer, InfoTemplate, Graphic, SimpleFillSymbol,
+                SimpleLineSymbol, Color, on) {
+      var map,
+          drawTools,
+          streamLayer;
 
-        <style type="text/css">
-            .message {
-                font-weight: 400;
-                font-size: smaller;
-                cursor: default;
-                padding-top: 5px;
-            }
-            #borderContainer {
-                width: 100%;
-                height: 100%;
-                margin: 0;
-            }
-            #bottomPane {
-                height: 10%;
-            }
-            #txtUrlSpan {
-                padding-top: 2px;
-                padding-bottom: 2px;
-                padding-left: 5px;
-                padding-right: 5px;
-                background-color: #ff0000;
-            }
-            #txtError {
-                visibility: visible;
-                margin-left: 10px;
-                color: #800000;
-                white-space: normal;
-            }
-            #controls {
-                margin-left: 10px;
-            }
-        </style>
-        <script src="http://js.arcgis.com/3.18/init.js"></script>
-    </head>
-    <body class="tundra">
-        <div data-dojo-type="dijit/layout/BorderContainer" id="borderContainer">
-            <div id="navtable" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'top'">
-                <div style="float:left;" id="breadcrumbs">ArcGIS JavaScript API: simFile</div>
-                <div style="float:right;" id="help">
-                    Built using the <a href="http://help.arcgis.com/en/webapi/javascript/arcgis/">ArcGIS JavaScript API</a>
-                </div>
-            </div>
-            <div id="map" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'center'">
-            </div>
-            <div id="bottomPane" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'bottom'">
-                <span>Stream service url: </span>
-                <span id="txtUrlSpan">/websats/SatStream</span>
-                <span id="controls">
-                    <input type="button" id="cmdStartStream" value="Connect" />
-                    <input type="button" id="cmdStopStream" value="Disconnect" disabled="disabled" />
-                </span>
-                <div id="txtError" class="message"></div><br>
-            </div>
-        </div>
-    </body>
-    <script>
-        require(["esri/map",
-            "esri/InfoTemplate",
-            "esri/layers/StreamLayer",
-            "esri/layers/FeatureLayer",
-            "esri/symbols/SimpleFillSymbol",
-            "esri/symbols/SimpleLineSymbol",
-            "esri/symbols/SimpleMarkerSymbol",
-            "esri/renderers/SimpleRenderer",
-            "dojo/_base/Color",
-            "dojo/on",
-            "dojo/io-query",
-            "dojo/parser",
-            "dijit/layout/BorderContainer",
-            "dijit/layout/ContentPane",
-            "dojo/domReady!"
-        ], function (Map, InfoTemplate, StreamLayer, FeatureLayer, SimpleFillSymbol, SimpleLineSymbol,
-                SimpleMarkerSymbol, SimpleRenderer, Color, on, ioQuery, parser) {
-            var map,
-                    streamLayer,
-                    reconnections = 0;
-            function init() {
-                parser.parse();
-                map = new esri.Map("map", {
-                    basemap: "topo"
-                });
-                on(dojo.byId("cmdStartStream"), "click", connectStreamLayer);
-                on(dojo.byId("cmdStopStream"), "click", disconnectStreamLayer);
-                connectStreamLayer();
-            }
-            function addStreamLayer(url) {
-                streamLayer = new StreamLayer(url, {
-                    purgeOptions: {displayCount: 5000},
-                    socketDirection: "subscribe",
-                    infoTemplate: new InfoTemplate("Attributes", "${*}")
-                });
-                streamLayer.on("connect", processConnect);
-                streamLayer.on("disconnect", processDisconnect);
-                streamLayer.on("attempt-reconnect", processAttemptReconnect);
-                streamLayer.on("error", function (evt) {
-                    console.log("Error: ", evt);
-                });
-                streamLayer.on("connection-error", function (evt) {
-                    var msg = "A web socket connection to the stream service running at " + url +
-                            " could not be established. Please inform the GIS Administrator.";
-                    dojo.byId("txtError").innerHTML = msg;
-                    dojo.byId("txtError").style.visibility = "visible";
-                });
-                map.addLayer(streamLayer);
-            }
-            function connectStreamLayer() {
-                if (!window.WebSocket) {
-                    alert("WebSockets are not supported by this browser. Stream Services use Websockets for communication and they are not supported on older versions of some browsers.  For Internet Explorer, version 10+ is needed.");
-                    dojo.byId("cmdStartStream").disabled = true;
-                    dojo.byId("cmdStopStream").disabled = true;
-                    dojo.byId("txtError").innerHTML = "WebSockets are not supported by this browser";
-                    dojo.byId("txtError").style.visibility = "visible";
-                    return;
-                }
-                var url = dojo.byId("txtUrlSpan").innerHTML;
-                dojo.byId("txtError").style.visibility = "hidden";
-                dojo.byId("txtError").innerHTML = "";
-                disconnectStreamLayer();
-                addStreamLayer(url);
-            }
-            function disconnectStreamLayer() {
-                if (streamLayer) {
-                    map.removeLayer(streamLayer);
-                    streamLayer = null;
-                }
-            }
-            function processConnect() {
-                dojo.byId("txtUrlSpan").style.backgroundColor = "#00ff00";
-                dojo.byId("txtError").style.visibility = "hidden";
-                dojo.byId("txtError").innerHTML = "";
-                dojo.byId("cmdStopStream").disabled = false;
-                dojo.byId("cmdStartStream").disabled = true;
-                if (streamLayer.fullExtent && streamLayer.fullExtent.spatialReference === map.spatialReference && streamLayer.fullExtent.xmin) {
-                    map.setExtent(streamLayer.fullExtent);
-                }
-            }
-            function processDisconnect(evt) {
-                var color = "#ff0000",
-                        msg;
-                if (evt.willReconnect) {
-                    msg = "Connection lost. Attempting to reconnect";
-                    color = "#ffff00";
-                } else {
-                    if (evt.error) {
-                        msg = evt.error.message;
-                    }
-                    disconnectStreamLayer();
-                    dojo.byId("cmdStopStream").disabled = true;
-                    dojo.byId("cmdStartStream").disabled = false;
-                }
-                if (msg) {
-                    dojo.byId("txtError").style.visibility = "visible";
-                    dojo.byId("txtError").innerHTML = msg;
-                }
-                dojo.byId("txtUrlSpan").style.backgroundColor = color;
-            }
-            function processAttemptReconnect(evt) {
-                if (evt.count && evt.count >= 10) {
-                    processDisconnect({
-                        error: new Error("Cannot reconnect to service")
-                    });
-                }
-            }
-            init();
+      function init(){
+        map = new Map("map", {
+          basemap: "gray",
+          center: [-100, 34],
+          zoom: 5
         });
-    </script>
+
+        drawTools = new Draw(map);
+
+        //connect click events to UI buttons
+        on(dojo.byId("cmdToggleStreamLayer"), "click", toggleStreamLayer);
+        on(dojo.byId("cmdToggleSpatialFilter"), "click", toggleSpatialFilter);
+
+//        on(drawTools, "draw-end", function(evt){
+//          drawTools.deactivate();
+//          setSpatialFilter(evt.geometry);
+//          dojo.byId("cmdToggleSpatialFilter").value = "Clear Spatial Filter";
+//        });
+      }
+
+      /*************************************************
+       *
+       * Functions to add and remove Stream Layer
+       *
+       *************************************************/
+      function toggleStreamLayer(){
+        if(streamLayer){
+          removeStreamLayer();
+        }
+        else{
+          addStreamLayer();
+        }
+      }
+      function addStreamLayer(){
+        //url to stream service
+        var svcUrl = dojo.byId("txtStreamUrl").value;
+
+        //construct Stream Layer
+        streamLayer = new StreamLayer(svcUrl, {
+          purgeOptions: { displayCount: 10000 },
+          infoTemplate: new InfoTemplate("Attributes", "${*}")
+        });
+
+        //When layer loads, register listeners for layer events and add layer to map
+        streamLayer.on("load", function(){
+          //Connect and Disconnect events
+          streamLayer.on("connect", processConnect);
+          streamLayer.on("disconnect", processDisconnect);
+
+          //FilterChange event
+          streamLayer.on("filter-change", processFilterChange);
+
+          //Add layer to map
+          map.addLayer(streamLayer);
+        });
+      }
+
+      function removeStreamLayer(){
+        if (streamLayer){
+          map.removeLayer(streamLayer);
+          streamLayer = null;
+          map.graphics.clear();
+        }
+      }
+
+      /*********************************************************
+       *
+       * Stream layer event handlers
+       *
+       *********************************************************/
+      function processConnect(){
+        dojo.byId("cmdToggleStreamLayer").value = "Remove Stream Layer";
+        dojo.byId("txtStreamUrl").style.backgroundColor = "#008000";
+        dojo.byId("cmdToggleSpatialFilter").value = "Draw Extent";
+        //dojo.byId("divFilterControls").style.display = "block";
+      }
+
+      function processDisconnect(){
+        dojo.byId("cmdToggleStreamLayer").value = "Add Stream Layer";
+        dojo.byId("txtStreamUrl").style.backgroundColor = "#8b0000";
+        //dojo.byId("divFilterControls").style.display = "none";
+      }
+
+      function processFilterChange(evt){
+        //clear layer graphics
+        streamLayer.clear();
+
+        //the event contains a filter property that is the current filter set on the service
+        //update map graphic to show current spatial filter
+        var bbox = evt.filter.geometry;
+        map.graphics.clear();
+        if(bbox){
+          map.graphics.add(new Graphic(bbox,
+              new SimpleFillSymbol(SimpleFillSymbol.STYLE_NULL,
+                  new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+                      new Color( [5, 112, 176] ), 2),
+                  new Color( [5, 112, 176, 0] ))));
+        }
+      }
+
+      /************************************************
+       *
+       * Functions to set and clear spatial filter
+       *
+       ************************************************/
+      function toggleSpatialFilter(){
+        var currentSpatialFilter = null;
+        if(streamLayer){
+          currentSpatialFilter = streamLayer.getFilter().geometry;
+        }
+        if (!currentSpatialFilter){
+          drawTools.activate(Draw.EXTENT);
+        }
+        else{
+          setSpatialFilter(null);
+          dojo.byId("cmdToggleSpatialFilter").value = "Draw Extent";
+        }
+      }
+
+      //Set spatial filter on stream layer. Setting to null clears filter
+      function setSpatialFilter(bbox){
+        if (streamLayer){
+          streamLayer.setGeometryDefinition(bbox);
+        }
+      }
+
+      init();
+    });
+  </script>
 </html>
