@@ -170,17 +170,8 @@ public class satfootprints extends HttpServlet {
                     JSONObject geom2 = new JSONObject();
                     if (strGeomType.equalsIgnoreCase("geojson")) {
                         geom2.put("coordinates", polys);
-
                     } else {
-                        JSONArray rngs = new JSONArray();
-                        rngs.put(polys.getJSONArray(0).getJSONArray(0));
-                        try {
-                            rngs.put(polys.getJSONArray(1).getJSONArray(0));
-                        } catch (Exception e) {
-                            // ok to ignore
-                        }
-                        geom2.put("rings", rngs);
-                        
+                        geom2.put("rings", polys);                        
                     }
 
                     if (format.equalsIgnoreCase("json")) {

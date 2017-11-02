@@ -216,18 +216,8 @@ public class sattracks extends HttpServlet {
                     JSONObject geom2 = new JSONObject();
                     if (strGeomType.equalsIgnoreCase("geojson")) {
                         geom2.put("coordinates", lines);
-
                     } else {        
-                                             
-                        JSONArray paths = new JSONArray();
-                        int numPaths = lines.length();
-                        int pathNum = 0;
-                        while (pathNum < numPaths) {
-                            paths.put(lines.getJSONArray(pathNum));
-                            pathNum++;
-                        }
-                        
-                        geom2.put("paths", paths);
+                        geom2.put("paths", lines);
                     }
 
                     if (strFormat.equalsIgnoreCase("json") || strFormat.equalsIgnoreCase("ndjson")) {
