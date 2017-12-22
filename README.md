@@ -41,7 +41,7 @@ Now the [websats](https://github.com/david618/websats)
 $ cd 
 $ git clone https://github.com/david618/websats
 $ cd websats
-$ mvn install -Ddocker.skip=true
+$ mvn install 
 </pre>
 
 Both should end with "BUILD SUCCESS"
@@ -51,11 +51,13 @@ To build the docker image.
 **NOTE** User must have permissions to create docker images.
 
 <pre>
-mvn clean install 
+mvn clean install -Ddocker.skip=false
 </pre>
 
 
 ## Deploy
+
+### Deploy on Tomcat
 
 Download and install [Tomcat](http://apache.org/dist//tomcat/tomcat-8/)
 
@@ -83,6 +85,43 @@ The websats will autodeploy.
 
 You should now be able to access websats.  (e.g.  http://localhost:8080/websats/) 
 
+### Deploy Docker
+
+Run Docker 
+
+<pre>
+docker run --rm -p 8080:8080 david62243/websats
+</pre>
+
+You can then access via http://localhost:8080/websats.
+
+### Deploy on DC/OS
+
+Deloy "Single Container"
+
+Service
+- SERVICE ID: /websats
+- CONTAINER IMAGE: david62243/websats
+- CPUs: 1
+- Memory (MiB): 1000
+- COMMAND: `/usr/local/tomcat/bin/startup.sh; tail -f /etc/motd`
+
+Networking
+- NETWORK TYPE: Virtual Network: dcos
+- CONTAINER PORT: 8080
+- SERVICE ENDPOINT NAME: tomcat
+- PORT MAPPING: Enabled Checked
+- ASSIGN AUTOMATICALLY: Checked
+- PROTOCOL: TCP
+- ENABLE LOAD BLANACED SERVICE ADDRESS: Checked
+
+Run the service.
+
+From within the cluster you can access via websats.marathon.l4lb.thisdcos.directory:8080/websats.
+
+
+### Update Two Line Elements (TLE)
+
 The accuracy of the satellite positions depends on the currency of the TLE data in &lt;webapps&gt;/websats/WEB-INF/classes/sats.tle file. There is a bash shell script in websats/scripts folder (update_tle.sh) that can be configured as a crontab task to update the sats.tle.
 
 You can do this manually by downloading the TLE's from [Celestrack](https://www.celestrak.com/NORAD/elements/).  The script downloads several different sets and concatenates them into the one file (sats.tle).
@@ -99,6 +138,8 @@ ProxyPreserveHost On
 ProxyPass /websats/SatStream ws://boot:8080/websats/SatStream
 ProxyPass /websats http://boot:8080/websats
 </pre>
+
+For DC/OS you could run Apache on the Public Agent(s) and websats would now be accessible via the "public" DNS Name or IP.  
 
 **NOTE** You must add the ws proxy before the http proxy.
 
