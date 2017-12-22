@@ -115,6 +115,11 @@ Networking
 - PROTOCOL: TCP
 - ENABLE LOAD BLANACED SERVICE ADDRESS: Checked
 
+Health Checks
+- PROTOCOL: HTTP
+- SERVICE ENDPOINT: tomcat
+- With this configuration if Tomcat stops; Marathon will restart the webapps Mesos Application
+
 Run the service.
 
 From within the cluster you can access via websats.marathon.l4lb.thisdcos.directory:8080/websats.
