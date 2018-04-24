@@ -1,0 +1,49 @@
+{
+  "labels": {
+    "HAPROXY_GROUP": "external"
+  },
+  "id": "/websats",
+  "cmd": "/usr/local/tomcat/bin/startup.sh; tail -f /etc/motd",
+  "container": {
+    "portMappings": [
+      {
+        "containerPort": 8080,
+        "hostPort": 0,
+        "labels": {
+          "VIP_0": "/websats:80"
+        },
+        "protocol": "tcp",       
+        "name": "tomcat"
+      }
+    ],
+    "type": "MESOS",
+    "docker": {
+      "image": "david62243/websats",
+      "forcePullImage": false,
+      "parameters": []
+    }
+  },
+  "cpus": 1,
+  "disk": 0,
+  "healthChecks": [
+    {
+      "gracePeriodSeconds": 300,
+      "intervalSeconds": 60,
+      "maxConsecutiveFailures": 3,
+      "portIndex": 0,
+      "timeoutSeconds": 20,
+      "delaySeconds": 15,
+      "protocol": "MESOS_HTTP",
+      "path": "/"
+    }
+  ],
+  "instances": 1,
+  "maxLaunchDelaySeconds": 3600,
+  "mem": 1024,
+  "gpus": 0,
+  "networks": [
+    {
+      "mode": "container/bridge"
+    }
+  ]
+}
