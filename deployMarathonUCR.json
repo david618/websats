@@ -23,7 +23,7 @@
       "parameters": []
     }
   },
-  "cpus": 1,
+  "cpus": 2,
   "disk": 0,
   "healthChecks": [
     {
@@ -39,7 +39,7 @@
   ],
   "instances": 1,
   "maxLaunchDelaySeconds": 3600,
-  "mem": 1024,
+  "mem": 4096,
   "gpus": 0,
   "networks": [
     {
