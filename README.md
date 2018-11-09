@@ -146,6 +146,21 @@ ProxyPass /websats http://boot:8080/websats
 
 For DC/OS you could run Apache on the Public Agent(s) and websats would now be accessible via the "public" DNS Name or IP.  
 
+Using DC/OS vip.
+
+```
+ProxyRequests Off
+ProxyPreserveHost On
+
+ProxyPass /websats/SatStream ws://websats.marathon.l4lb.thisdcos.directory/websats/SatStream
+
+ProxyPass /websats http://websats.marathon.l4lb.thisdcos.directory/websats
+
+```
+
+Only accessible via http.  
+
+
 **NOTE** You must add the ws proxy before the http proxy.
 
 ### Nginx
