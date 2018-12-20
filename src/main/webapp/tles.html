@@ -23,19 +23,21 @@
             <li>TLE Line 2</li>
         </ul>
 
+	<p>For more information about the TLE format visit <a href="https://www.celestrak.com/NORAD/documentation/tle-fmt.php">NORAD Two-Line Element Set Format</a></p>
+
         <p><i>Examples</i> </p>
 
         <ul>
             <li><b>Text TLE</b>
                 <ul>
                     <li>TLE for all satellites: <a href="tles">/tles</a></li>
-                    <li>TLE for satellites by name: <a href="tles?nums=29709,41895">/tles?nums=29709,41895</a></li>
+                    <li>TLE for satellites by number: <a href="tles?nums=29709">/tles?nums=29709</a></li>
                 </ul>
             </li>
             <li><b>JSON</b>
                 <ul>
                     <li>TLE all satellites: <a href="tles?f=json">/tles?f=json</a></li>
-                    <li>TLE for satellites by number: <a href="tles?f=json&names=GPS*">/tles?f=json&names=GPS*</a></li>
+                    <li>TLE for satellites by name: <a href="tles?f=json&names=GPS*">/tles?f=json&names=GPS*</a></li>
                 </ul>
             </li>
         </ul>        

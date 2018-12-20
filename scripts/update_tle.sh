@@ -3,7 +3,7 @@
 NAMES=(stations gps-ops glo-ops resource iridium intelsat iridium-NEXT globalstar orbcomm ses musson science)
 FOLDER=~
 #TLEFILE=~/github/websats/src/main/resources/sats.tle
-TLEFILE=~/websats/src/main/resources/sats.tle
+TLEFILE=../src/main/resources/sats.tle
 
 #FOLDER=/home/tomcat
 #TLEFILE=/opt/tomcat/webapps/websats/WEB-INF/classes/sats.tle
