@@ -26,6 +26,7 @@ import org.json.JSONObject;
 public class satellites extends HttpServlet {
 
     private static Sats satDB = null;
+    //private static Long msgNum = null;
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -95,8 +96,8 @@ public class satellites extends HttpServlet {
                     throw new Exception("Unsupported Geometry Type. Must be esri or geojson");
                 }
             }
-
             long t = System.currentTimeMillis();
+						/*
             if (!strTime.equalsIgnoreCase("")) {
                 t = Long.parseLong(strTime);
                 if (t < 10000000000L) {
@@ -104,6 +105,7 @@ public class satellites extends HttpServlet {
                     t = t * 1000;
                 }
             }
+						*/
             
             int ntimes = 1;
             if (!strNtimes.equalsIgnoreCase("")) {
@@ -154,7 +156,14 @@ public class satellites extends HttpServlet {
                     JSONObject result = new JSONObject();
                     JSONArray line = new JSONArray();
                     JSONArray lines = new JSONArray();
-
+                    /*
+										if (msgNum == null || msgNum > 1000000000L) {
+                        msgNum = 1L;
+                    } else {
+                        msgNum += 1;
+                    }
+										*/
+                    
                     if (fmt.equalsIgnoreCase("geojson")) {
 
                         result.put("type", "Feature");
@@ -167,6 +176,7 @@ public class satellites extends HttpServlet {
                         properties.put("lon", pos.GetLon());
                         properties.put("lat", pos.GetParametricLat());
                         properties.put("alt", pos.getAltitude());
+                        //properties.put("msgnum", msgNum);
                         result.put("properties", properties);
 
                         JSONObject geom = new JSONObject();
@@ -197,6 +207,8 @@ public class satellites extends HttpServlet {
                             result.put("lon", pos.GetLon());
                             result.put("lat", pos.GetParametricLat());
                             result.put("alt", pos.getAltitude());
+                            //result.put("msgnum", msgNum);
+
                             if (!geomType.equalsIgnoreCase("")) {
                                 result.put("geometry", geom2);
                             } 
@@ -216,6 +228,9 @@ public class satellites extends HttpServlet {
                             String oline = pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
                                     + strDel + pos.GetEpoch() + strDel + pos.GetLon() + strDel + pos.GetParametricLat()
                                     + strDel + pos.getAltitude() + "";
+//                            String oline = pos.getName() + strDel + pos.getNum() + strDel + pos.GetEpoch().epochTimeMillis()
+//                                    + strDel + pos.GetEpoch() + strDel + pos.GetLon() + strDel + pos.GetParametricLat()
+//                                    + strDel + pos.getAltitude() + strDel + msgNum + "";
                             out.println(oline);
                         } else {
                             // Default to delimited the geom is inside quotes and replace quotes with \"

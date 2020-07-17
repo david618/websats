@@ -224,7 +224,6 @@ public class ellipses extends HttpServlet {
 			
                         result.put("geompt", pt);
                         result.put("geometry", geom2);
-                        results.put(result);
                         
                         if (format.equalsIgnoreCase("json")) {
                             results.put(result);
@@ -259,7 +258,14 @@ public class ellipses extends HttpServlet {
             } else if (format.equalsIgnoreCase("json")) {
                 response.setContentType("application/json;charset=UTF-8");
                 
-                results.write(out);
+                if (num == 1) {
+                    // Just one write it out as json object
+                    results.getJSONObject(0).write(out);
+                } else {
+                    // Write out as json array
+                    results.write(out);
+                }
+                
                 
             } else {
                 // Pipe Delimited
