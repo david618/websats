@@ -1,0 +1,37 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: websats
+  namespace: simulators
+  labels:
+    app: websats
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: websats
+  template:
+    metadata:
+      labels:
+        app: websats
+      annotations:
+        #sidecar.istio.io/inject: "false"
+        prometheus.io/path: /metrics
+        prometheus.io/port: '8090'
+        prometheus.io/scrape: 'true'
+    spec:
+      containers:
+        - name: websats
+          image: david62243/websats:v2.0
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: '500m'
+              memory: 1Gi
+            requests:
+              cpu: '500m'
+              memory: 1Gi
+#      imagePullSecrets:
+#        - name: REPLACE_WITH_CREDS
+

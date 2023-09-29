@@ -15,7 +15,7 @@ TLEFILE=../src/main/resources/sats.tle
 for a in "${NAMES[@]}"
 do
 	echo $a
-	url="curl -s -o ${FOLDER}/${a}.txt https://www.celestrak.com/NORAD/elements/${a}.txt"
+	url="curl -s -o ${FOLDER}/${a}.txt https://celestrak.org/NORAD/elements/gp.php?GROUP=${a}&FORMAT=tle"
 	$(${url})
 	cat ${FOLDER}/${a}.txt >> $TLEFILE
 	
