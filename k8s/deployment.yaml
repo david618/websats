@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: websats
-          image: david62243/websats:v2.1
+          image: david62243/websats:v2.0
           imagePullPolicy: Always
           resources:
             limits:
