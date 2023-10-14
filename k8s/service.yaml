@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: websats
-  namespace: simulators
+  namespace: websats
   labels:
     app: websats
 spec:

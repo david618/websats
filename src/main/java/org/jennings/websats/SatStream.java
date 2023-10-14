@@ -167,8 +167,21 @@ public class SatStream extends HttpServlet {
             json.put("currentVersion", "10.5");
             
             json2 = new JSONObject();
+
+            String referer = request.getHeader("Referer");
+            if ( referer == null ) {
+                referer = "";
+            }
+            System.out.println(referer);
+            System.out.println(referer.substring(0, 5));
+            String wsScheme = "ws";
+            if ( referer.substring(0, 5).equals("https") ) {
+                wsScheme = "wss";
+            }
+            System.out.println(wsScheme);
+
             json2.put("transport", "ws");
-            json2.append("urls", request.getRequestURL().replace(0, 4, "ws"));
+            json2.append("urls", request.getRequestURL().replace(0, 4, wsScheme));
             
             json.append("streamUrls", json2);
             

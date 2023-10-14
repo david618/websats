@@ -3,7 +3,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: websats
-  namespace: simulators
   labels:
     app: websats
 spec:
@@ -23,7 +22,7 @@ spec:
     spec:
       containers:
         - name: websats
-          image: david62243/websats:v2.0
+          image: david62243/websats:v2.1
           imagePullPolicy: Always
           resources:
             limits:
@@ -32,6 +31,3 @@ spec:
             requests:
               cpu: '500m'
               memory: 1Gi
-#      imagePullSecrets:
-#        - name: REPLACE_WITH_CREDS
-
