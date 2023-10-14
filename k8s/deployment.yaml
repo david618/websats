@@ -15,7 +15,6 @@ spec:
       labels:
         app: websats
       annotations:
-        #sidecar.istio.io/inject: "false"
         prometheus.io/path: /metrics
         prometheus.io/port: '8090'
         prometheus.io/scrape: 'true'
