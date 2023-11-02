@@ -1,12 +1,12 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: websats
+  name: websats81
   namespace: websats
   annotations:
     nginx.org/websocket-services: websats
 spec:
-  ingressClassName: nginx
+  ingressClassName: websats
   rules:
   - host: websats2.westus2.cloudapp.azure.com
     http:
