@@ -1,0 +1,6 @@
+[submodule "geotools"]
+	path = geotools
+	url = https://github.com/david618/geotools
+[submodule "sat"]
+	path = sat
+	url = https://github.com/david618/sat
