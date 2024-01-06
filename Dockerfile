@@ -2,6 +2,7 @@
 # docker buildx build --platform=linux/amd64 -t david62243/websats:${TAG} .   # Use this line to complie on ARM based Mac
 # docker build -t david62243/websats:${TAG} .
 # docker push david62243/websats:${TAG}
+# docker run -it --rm -p 8080:8080 david62243/websats:${TAG}
 #
 # Build stage
 #
