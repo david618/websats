@@ -1,0 +1,34 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+  IMG: david62243/websats
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  docker-build:
+    preconditions:
+      - sh: "[ -n '{{.TAG}}' ] || exit 1 "
+        msg: "Variable {{.TAG}} is not set (example command: TAG=2.0 task build)"
+    cmds:
+      - docker build -t {{.IMG}}:{{.TAG}} .
+
+  docker-push:
+    preconditions:
+      - sh: "[ -n '{{.TAG}}' ] || exit 1 "
+        msg: "Variable {{.TAG}} is not set (example command: TAG=2.0 task build)"
+    cmds:
+      - docker push {{.IMG}}:{{.TAG}}
+
+  build:
+    cmds:
+      - mvn -f sat/pom.xml install
+      - mvn -f geotools/pom.xml install
+      - mvn install
+

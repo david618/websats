@@ -8,6 +8,15 @@
 #
 
 FROM maven:3.8.5-openjdk-17-slim AS build
+
+COPY sat/src /home/app/sat/src
+COPY sat/pom.xml /home/app/sat/pom.xml
+RUN mvn -f /home/app/sat/pom.xml install
+
+COPY geotools/src /home/app/geotools/src
+COPY geotools/pom.xml /home/app/geotools/pom.xml
+RUN mvn -f /home/app/geotools/pom.xml install
+
 COPY src /home/app/src
 COPY pom.xml /home/app
 RUN mvn -DskipTests=true -f /home/app/pom.xml install
@@ -17,7 +26,7 @@ RUN mvn -DskipTests=true -f /home/app/pom.xml install
 #
 FROM tomcat:9.0.81-jre17-temurin-jammy
 
-COPY ./target/websats-1.0-SNAPSHOT.war /usr/local/tomcat/webapps/websats.war
+COPY --from=build /home/app/target/websats-1.0-SNAPSHOT.war /usr/local/tomcat/webapps/websats.war
 COPY index.jsp /usr/local/tomcat/webapps/ROOT/index.jsp
 
 RUN useradd -u 1000 -ms /bin/bash ubuntu
@@ -26,4 +35,4 @@ RUN chown -R ubuntu.ubuntu /usr/local/tomcat
 USER ubuntu
 WORKDIR /home/ubuntu
 
-#EXPOSE 8080
+EXPOSE 8080
