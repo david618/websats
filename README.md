@@ -216,6 +216,17 @@ Created a couple of tasks.  Perhaps this is better than README's with instructio
 
 
 
+## podman
 
+Interesting alternative to docker.
+
+
+```
+podman search --list-tags docker.io/david62243/websats --limit 10
+NAME                          TAG
+docker.io/david62243/websats  abc
+docker.io/david62243/websats  v1.0
+docker.io/david62243/websats  v2.0
+```
 
 
