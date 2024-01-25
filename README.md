@@ -14,32 +14,43 @@ brew install git
 brew install maven
 ```
 
-### Clone and Install geotools
-
-First the [geotools](https://github.com/david618/geotools) project
-```
-git clone https://github.com/david618/geotools
-cd sat
-mvn install
-```
-
-### Clone and Install sat
-
-First the [sat](https://github.com/david618/sat) project
-```
-git clone https://github.com/david618/sat
-cd sat
-mvn install
-```
-
-### Clone and Install websat
+### Clone websts
 
 Now the [websats](https://github.com/david618/websats)
 ```
 git clone https://github.com/david618/websats
 cd websats
+```
+
+websats includes to submodules
+- [geotools](https://github.com/david618/geotools) project
+- [sat](https://github.com/david618/sat) project
+
+Pull submodules geotools and sat
+
+```
+git submodule update --init --recursive
+```
+
+
+### Build geotools
+
+```
+mvn -f /home/app/geotools/pom.xml install
+```
+
+### Build sat
+
+```
+mvn -f /home/app/sat/pom.xml install
+```
+
+### Build websat
+
+```
 mvn install
 ```
+
 
 ### Build Docker Image
 
